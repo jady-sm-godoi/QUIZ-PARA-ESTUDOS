@@ -50,13 +50,14 @@ async def test_get_quiz_returns_404_for_nonexistent():
 
 
 @pytest.mark.asyncio
-async def test_submit_quiz_not_implemented():
+async def test_submit_quiz_returns_404_for_nonexistent():
+    """Deve retornar 404 para quiz inexistente no submit"""
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.post("/api/quiz/123/submit", json={
+        response = await client.post("/api/quiz/nao-existe/submit", json={
             "respostas": {0: 1, 1: 2}
         })
-        assert response.status_code == 501
+        assert response.status_code == 404
 
 
 @pytest.mark.asyncio

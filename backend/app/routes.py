@@ -137,9 +137,61 @@ async def get_quiz(quiz_id: str):
     return response
 
 
-@router.post("/quiz/{quiz_id}/submit", response_model=QuizResult)
+@router.post("/quiz/{quiz_id}/submit")
 async def submit_quiz(quiz_id: str, request: QuizResultRequest):
-    raise HTTPException(status_code=501, detail="Not implemented")
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id FROM quizzes WHERE id = ?", (quiz_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Quiz não encontrado")
+
+    cursor.execute("""
+        SELECT id, resposta_correta
+        FROM questions WHERE quiz_id = ?
+    """, (quiz_id,))
+    questions = cursor.fetchall()
+
+    if not questions:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Quiz sem perguntas")
+
+    acertos = 0
+    total = len(questions)
+
+    for question in questions:
+        question_index = question["id"] - 1
+        user_answer = request.respostas.get(question_index)
+        if user_answer == question["resposta_correta"]:
+            acertos += 1
+
+    cursor.execute("SELECT id FROM results WHERE quiz_id = ?", (quiz_id,))
+    existing_result = cursor.fetchone()
+
+    if existing_result:
+        cursor.execute("""
+            UPDATE results
+            SET acertos = ?, total = ?, completado_em = ?
+            WHERE quiz_id = ?
+        """, (acertos, total, datetime.now().isoformat(), quiz_id))
+        result_id = existing_result["id"]
+    else:
+        cursor.execute("""
+            INSERT INTO results (quiz_id, acertos, total, completado_em)
+            VALUES (?, ?, ?, ?)
+        """, (quiz_id, acertos, total, datetime.now().isoformat()))
+        result_id = cursor.lastrowid
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "quiz_id": quiz_id,
+        "acertos": acertos,
+        "total": total,
+        "completado_em": datetime.now().isoformat()
+    }
 
 
 @router.get("/history", response_model=list[dict])
