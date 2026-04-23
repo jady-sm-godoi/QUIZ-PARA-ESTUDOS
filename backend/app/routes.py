@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from typing import Optional
+from typing import Optional, List, Dict
 import json
 
 from app.models import (
@@ -15,19 +15,66 @@ from app.database import get_connection, compute_hash
 import uuid
 from datetime import datetime
 
+
+MAX_CONTENT_CHARS = 50000
+MAX_TOKENS_ESTIMATE = 4
+NEED_SPLIT_THRESHOLD = 60000
+
+
+def truncate_content(content: str, max_chars: int = MAX_CONTENT_CHARS) -> str:
+    if len(content) <= max_chars:
+        return content
+    return content[:max_chars] + "\n\n[Conteúdo truncado por limite de tamanho]"
+
+
+def split_content_into_parts(content: str, max_chars: int = MAX_CONTENT_CHARS) -> List[Dict]:
+    if not content or len(content) == 0:
+        return []
+
+    if len(content) <= max_chars:
+        return [{
+            "part_index": 0,
+            "content": content,
+            "char_count": len(content),
+            "total_parts": 1
+        }]
+
+    parts = []
+    total_parts = (len(content) + max_chars - 1) // max_chars
+
+    for i in range(total_parts):
+        start = i * max_chars
+        end = start + max_chars
+        part_content = content[start:end]
+
+        parts.append({
+            "part_index": i,
+            "content": part_content,
+            "char_count": len(part_content),
+            "total_parts": total_parts
+        })
+
+    return parts
+
+
+def get_content_needs_split(content: str) -> bool:
+    return len(content) > NEED_SPLIT_THRESHOLD
+
+
 router = APIRouter(prefix="/api", tags=["quiz"])
 
 
-@router.post("/generate", response_model=QuizResponse)
+@router.post("/generate")
 async def generate_quiz(request: QuizGenerateRequest):
     from app.agents import QuizAgent
+    from app.models import QuizPartsResponse, ContentPartResponse
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    content_to_use = request.conteudo or ""
+    content_to_use = ""
 
-    if not content_to_use and request.categoria:
+    if request.categoria:
         cursor.execute("""
             SELECT content FROM materials WHERE category = ?
         """, (request.categoria,))
@@ -35,12 +82,40 @@ async def generate_quiz(request: QuizGenerateRequest):
         if materials:
             content_to_use = "\n\n".join([m["content"] for m in materials])
 
+    if not content_to_use and request.conteudo:
+        content_to_use = request.conteudo
+
     if not content_to_use:
         conn.close()
         raise HTTPException(
             status_code=400,
             detail="É necessário fornecer conteúdo ou uma categoria com materiais"
         )
+
+    needs_split = get_content_needs_split(content_to_use)
+    parts = split_content_into_parts(content_to_use, MAX_CONTENT_CHARS)
+
+    if needs_split and request.part_index is None:
+        conn.close()
+        return QuizPartsResponse(
+            titulo=request.titulo,
+            categoria=request.categoria,
+            total_parts=len(parts),
+            parts=[ContentPartResponse(**{k: v for k, v in p.items() if k != "content"}) for p in parts],
+            message=f"Este material tem {len(content_to_use)} caracteres e foi dividido em {len(parts)} partes. "
+                   f"Escolha part_index de 0 a {len(parts)-1} para gerar o quiz de uma parte específica."
+        )
+
+    if request.part_index is not None:
+        if request.part_index < 0 or request.part_index >= len(parts):
+            conn.close()
+            raise HTTPException(
+                status_code=400,
+                detail=f"part_index inválido. Use valores entre 0 e {len(parts)-1}"
+            )
+        content_to_use = parts[request.part_index]["content"]
+    else:
+        content_to_use = truncate_content(content_to_use, MAX_CONTENT_CHARS)
 
     agent = QuizAgent()
     result = agent.generate(content_to_use, num_questions=request.num_perguntas)
@@ -288,8 +363,13 @@ async def upload_material(
     file: UploadFile = File(...),
     category: Optional[str] = Form(None)
 ):
+    from app.pdf_utils import extract_text
+
     content = await file.read()
-    content_text = content.decode("utf-8", errors="ignore")
+    content_text = extract_text(content, file.filename or "")
+
+    if not content_text.strip():
+        content_text = content.decode("utf-8", errors="ignore")
 
     material_hash = compute_hash(content_text)
 

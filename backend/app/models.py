@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
@@ -11,6 +11,7 @@ class QuizGenerateRequest(BaseModel):
     conteudo: Optional[str] = None
     num_perguntas: int = Field(default=10, ge=1, le=50)
     categoria: Optional[str] = None
+    part_index: Optional[int] = Field(default=None, description="Índice da parte do conteúdo (se houver divisão)")
 
 
 class QuestionModel(BaseModel):
@@ -48,3 +49,18 @@ class MaterialResponse(BaseModel):
     content: Optional[str]
     category: Optional[str]
     criado_em: datetime
+
+
+class ContentPartResponse(BaseModel):
+    part_index: int
+    char_count: int
+    total_parts: int
+    needs_split: bool
+
+
+class QuizPartsResponse(BaseModel):
+    titulo: str
+    categoria: Optional[str]
+    total_parts: int
+    parts: List[ContentPartResponse]
+    message: str = "Este material foi dividido em partes. Use part_index para gerar quiz de uma parte específica."
