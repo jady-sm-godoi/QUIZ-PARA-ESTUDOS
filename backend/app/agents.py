@@ -1,9 +1,31 @@
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
 import json
+import os
 
 
 MODEL_ID = "gpt-4o-mini"
+
+
+def get_api_key() -> str:
+    api_key = os.environ.get("OPENAI_API_KEY", "")
+    if not api_key:
+        try:
+            from app.config import get_settings
+            settings = get_settings()
+            api_key = settings.openai_api_key
+        except:
+            pass
+    return api_key
+
+
+def create_quiz_agent(model_id: str = MODEL_ID) -> Agent:
+    api_key = get_api_key()
+    return Agent(
+        model=OpenAIChat(id=model_id, api_key=api_key),
+        markdown=False,
+    )
+
 
 QUIZ_SYSTEM_PROMPT = """Você é um professor especializado em criar quizzes de múltipla escolha para estudantes.
 
@@ -35,13 +57,6 @@ Exemplo de resposta_correta:
 - 1 = segunda opção (B)
 - 2 = terceira opção (C)
 - 3 = quarta opção (D)"""
-
-
-def create_quiz_agent(model_id: str = MODEL_ID) -> Agent:
-    return Agent(
-        model=OpenAIChat(id=model_id),
-        markdown=False,
-    )
 
 
 class QuizAgent:
