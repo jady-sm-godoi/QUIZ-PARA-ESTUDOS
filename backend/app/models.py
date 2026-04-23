@@ -45,5 +45,6 @@ class CategoryResponse(BaseModel):
 class MaterialResponse(BaseModel):
     hash: str
     filename: Optional[str]
+    content: Optional[str]
     category: Optional[str]
     criado_em: datetime

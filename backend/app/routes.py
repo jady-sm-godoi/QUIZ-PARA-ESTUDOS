@@ -258,7 +258,29 @@ async def get_categories():
 
 @router.get("/categories/{category}/materials", response_model=list[MaterialResponse])
 async def get_category_materials(category: str):
-    raise HTTPException(status_code=501, detail="Not implemented")
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT hash, filename, content, category, criado_em
+        FROM materials
+        WHERE category = ?
+        ORDER BY criado_em DESC
+    """, (category,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    materials = [
+        MaterialResponse(
+            hash=row["hash"],
+            filename=row["filename"],
+            content=row["content"],
+            category=row["category"],
+            criado_em=row["criado_em"]
+        )
+        for row in rows
+    ]
+    return materials
 
 
 @router.post("/upload")
