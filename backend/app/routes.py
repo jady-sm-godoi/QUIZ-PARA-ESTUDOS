@@ -20,7 +20,67 @@ router = APIRouter(prefix="/api", tags=["quiz"])
 
 @router.post("/generate", response_model=QuizResponse)
 async def generate_quiz(request: QuizGenerateRequest):
-    raise HTTPException(status_code=501, detail="Not implemented")
+    from app.agents import QuizAgent
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    content_to_use = request.conteudo or ""
+
+    if not content_to_use and request.categoria:
+        cursor.execute("""
+            SELECT content FROM materials WHERE category = ?
+        """, (request.categoria,))
+        materials = cursor.fetchall()
+        if materials:
+            content_to_use = "\n\n".join([m["content"] for m in materials])
+
+    if not content_to_use:
+        conn.close()
+        raise HTTPException(
+            status_code=400,
+            detail="É necessário fornecer conteúdo ou uma categoria com materiais"
+        )
+
+    agent = QuizAgent()
+    result = agent.generate(content_to_use, num_questions=request.num_perguntas)
+
+    quiz_id = str(uuid.uuid4())
+    material_hash = compute_hash(content_to_use)
+
+    cursor.execute("""
+        INSERT INTO quizzes (id, titulo, material_hash, criado_em)
+        VALUES (?, ?, ?, ?)
+    """, (quiz_id, request.titulo, material_hash, datetime.now().isoformat()))
+
+    perguntas = []
+    for i, q in enumerate(result.get("questions", [])):
+        cursor.execute("""
+            INSERT INTO questions (quiz_id, enunciado, opcoes, resposta_correta, explicacao)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            quiz_id,
+            q["enunciado"],
+            json.dumps(q["opcoes"]),
+            q["resposta_correta"],
+            q.get("explicacao", "")
+        ))
+
+        perguntas.append(QuestionModel(
+            enunciado=q["enunciado"],
+            opcoes=q["opcoes"],
+            resposta_correta=q["resposta_correta"],
+            explicacao=q.get("explicacao", "")
+        ))
+
+    conn.commit()
+    conn.close()
+
+    return QuizResponse(
+        quiz_id=quiz_id,
+        titulo=request.titulo,
+        perguntas=perguntas
+    )
 
 
 @router.get("/quiz/{quiz_id}", response_model=QuizResponse)

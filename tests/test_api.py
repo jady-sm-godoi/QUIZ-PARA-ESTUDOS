@@ -15,14 +15,29 @@ async def test_root_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_generate_quiz_not_implemented():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.post("/api/generate", json={
-            "titulo": "Test Quiz",
-            "conteudo": "Sample content"
-        })
-        assert response.status_code == 501
+async def test_generate_quiz_returns_quiz():
+    """Deve retornar quiz ao gerar (com mock)"""
+    from unittest.mock import patch, MagicMock
+
+    mock_questions = {
+        "questions": [
+            {"enunciado": "P1?", "opcoes": ["A", "B", "C", "D"], "resposta_correta": 0, "explicacao": ""}
+        ]
+    }
+
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        mock_agent = MagicMock()
+        mock_agent.generate.return_value = mock_questions
+        mock_agent_class.return_value = mock_agent
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post("/api/generate", json={
+                "titulo": "Test Quiz",
+                "conteudo": "Sample content"
+            })
+            assert response.status_code == 200
+            assert "quiz_id" in response.json()
 
 
 @pytest.mark.asyncio
