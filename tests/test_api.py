@@ -9,9 +9,7 @@ async def test_root_endpoint():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get("/")
         assert response.status_code == 200
-        data = response.json()
-        assert "message" in data
-        assert "version" in data
+        assert response.headers["content-type"].startswith("text/html")
 
 
 @pytest.mark.asyncio
