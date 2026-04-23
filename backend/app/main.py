@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pathlib import Path
 
 from app.database import init_db
@@ -24,4 +25,7 @@ app.include_router(router)
 
 @app.get("/")
 def root():
+    index_path = frontend_path / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
     return {"message": "Quiz Generator API", "version": "1.0.0"}

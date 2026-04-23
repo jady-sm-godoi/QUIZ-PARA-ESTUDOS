@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz para Estudos</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Quiz para Estudos</h1>
+        <nav>
+            <button id="btn-home" class="nav-btn active">Início</button>
+            <button id="btn-history" class="nav-btn">Histórico</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Seção: Gerar Quiz -->
+        <section id="section-generate" class="section active">
+            <div class="card">
+                <h2>Gerar Novo Quiz</h2>
+                
+                <form id="form-generate">
+                    <div class="form-group">
+                        <label for="quiz-titulo">Título do Quiz:</label>
+                        <input type="text" id="quiz-titulo" required placeholder="Ex: Quiz de Português">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quiz-categoria">Categoria:</label>
+                        <select id="quiz-categoria">
+                            <option value="">Selecione ou digite nova...</option>
+                        </select>
+                        <input type="text" id="nova-categoria" placeholder="Nova categoria (opcional)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quiz-conteudo">Conteúdo:</label>
+                        <textarea id="quiz-conteudo" rows="6" placeholder="Cole o texto do material aqui..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quiz-perguntas">Número de perguntas:</label>
+                        <input type="number" id="quiz-perguntas" value="10" min="1" max="50">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Gerar Quiz</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Seção: Quiz (perguntas) -->
+        <section id="section-quiz" class="section">
+            <div class="card">
+                <h2 id="quiz-title-display">Quiz</h2>
+                <div id="quiz-info" class="quiz-info"></div>
+                <div id="questions-container"></div>
+                <button id="btn-submit-quiz" class="btn btn-primary">Enviar Respostas</button>
+            </div>
+        </section>
+
+        <!-- Seção: Resultado -->
+        <section id="section-result" class="section">
+            <div class="card">
+                <h2>Resultado</h2>
+                <div id="result-container"></div>
+                <div id="questions-review"></div>
+                <button id="btn-new-quiz" class="btn btn-secondary">Novo Quiz</button>
+            </div>
+        </section>
+
+        <!-- Seção: Histórico -->
+        <section id="section-history" class="section">
+            <div class="card">
+                <h2>Histórico de Quizzes</h2>
+                <div id="history-container"></div>
+            </div>
+        </section>
+
+        <!-- Seção: Upload -->
+        <section id="section-upload" class="section">
+            <div class="card">
+                <h2>Upload de Material</h2>
+                <form id="form-upload">
+                    <div class="form-group">
+                        <label for="upload-file">Arquivo (TXT ou PDF):</label>
+                        <input type="file" id="upload-file" accept=".txt,.pdf">
+                    </div>
+                    <div class="form-group">
+                        <label for="upload-category">Categoria:</label>
+                        <select id="upload-category">
+                            <option value="">Selecione ou digite nova...</option>
+                        </select>
+                        <input type="text" id="upload-new-category" placeholder="Nova categoria (opcional)">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+                <div id="upload-result"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de loading -->
+    <div id="loading-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p id="loading-text">Gerando quiz...</p>
+        </div>
+    </div>
+
+    <!-- Modal de partes -->
+    <div id="parts-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Material Dividido em Partes</h3>
+            <p id="parts-message"></p>
+            <div id="parts-list"></div>
+            <button id="btn-close-parts" class="btn btn-secondary">Cancelar</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Quiz Generator - Powered by AI</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
