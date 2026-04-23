@@ -44,8 +44,9 @@ async def test_submit_quiz_not_implemented():
 
 
 @pytest.mark.asyncio
-async def test_categories_not_implemented():
+async def test_categories_returns_list():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get("/api/categories")
-        assert response.status_code == 501
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)

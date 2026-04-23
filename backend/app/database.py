@@ -1,13 +1,24 @@
 import hashlib
 import sqlite3
 from pathlib import Path
+from typing import Optional
 
-# SQLite é um banco de dados leve e simples, salvo em um único arquivo (quiz.db). Ele é fácil de usar e não requer configuração de servidor, perfeito para projetos pequenos e médios. O código abaixo define as funções para criar as tabelas necessárias e calcular o hash do conteúdo dos materiais.
 DATABASE_PATH = Path(__file__).parent.parent / "quiz.db"
+_test_db_path: Optional[Path] = None
+
+
+def set_test_db(path: Optional[str]):
+    global _test_db_path
+    _test_db_path = Path(path) if path else None
+
+
+def is_test_mode() -> bool:
+    return _test_db_path is not None
 
 
 def get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DATABASE_PATH)
+    path = _test_db_path if _test_db_path else DATABASE_PATH
+    conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     return conn
 
