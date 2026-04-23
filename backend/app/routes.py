@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from typing import Optional
 import json
 
@@ -286,6 +286,43 @@ async def get_category_materials(category: str):
 @router.post("/upload")
 async def upload_material(
     file: UploadFile = File(...),
-    category: Optional[str] = None
+    category: Optional[str] = Form(None)
 ):
-    raise HTTPException(status_code=501, detail="Not implemented")
+    content = await file.read()
+    content_text = content.decode("utf-8", errors="ignore")
+
+    material_hash = compute_hash(content_text)
+
+    filename = file.filename or "unknown"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT hash FROM materials WHERE hash = ?", (material_hash,))
+    existing = cursor.fetchone()
+
+    if existing:
+        conn.close()
+        return {
+            "hash": material_hash,
+            "filename": filename,
+            "content": content_text,
+            "category": category,
+            "message": "Material ja existe (hash duplicado)"
+        }
+
+    cursor.execute("""
+        INSERT INTO materials (hash, filename, content, category, criado_em)
+        VALUES (?, ?, ?, ?, ?)
+    """, (material_hash, filename, content_text, category, datetime.now().isoformat()))
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "hash": material_hash,
+        "filename": filename,
+        "content": content_text,
+        "category": category,
+        "criado_em": datetime.now().isoformat()
+    }
