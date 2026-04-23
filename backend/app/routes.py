@@ -235,8 +235,8 @@ async def submit_quiz(quiz_id: str, request: QuizResultRequest):
     acertos = 0
     total = len(questions)
 
-    for question in questions:
-        question_index = question["id"] - 1
+    for i, question in enumerate(questions):
+        question_index = i
         user_answer = request.respostas.get(question_index)
         if user_answer == question["resposta_correta"]:
             acertos += 1
