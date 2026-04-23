@@ -83,9 +83,58 @@ async def generate_quiz(request: QuizGenerateRequest):
     )
 
 
-@router.get("/quiz/{quiz_id}", response_model=QuizResponse)
+@router.get("/quiz/{quiz_id}")
 async def get_quiz(quiz_id: str):
-    raise HTTPException(status_code=501, detail="Not implemented")
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, titulo, material_hash, criado_em
+        FROM quizzes WHERE id = ?
+    """, (quiz_id,))
+    quiz = cursor.fetchone()
+
+    if not quiz:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Quiz não encontrado")
+
+    cursor.execute("""
+        SELECT id, enunciado, opcoes, resposta_correta, explicacao
+        FROM questions WHERE quiz_id = ?
+    """, (quiz_id,))
+    questions = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT id, acertos, total, completado_em
+        FROM results WHERE quiz_id = ?
+    """, (quiz_id,))
+    result = cursor.fetchone()
+
+    conn.close()
+
+    perguntas = []
+    for q in questions:
+        opcoes = json.loads(q["opcoes"])
+        perguntas.append({
+            "enunciado": q["enunciado"],
+            "opcoes": opcoes,
+            "resposta_correta": q["resposta_correta"],
+            "explicacao": q["explicacao"] or ""
+        })
+
+    response = {
+        "quiz_id": quiz["id"],
+        "titulo": quiz["titulo"],
+        "perguntas": perguntas
+    }
+
+    if result:
+        response["resultado_id"] = result["id"]
+        response["acertos"] = result["acertos"]
+        response["total"] = result["total"]
+        response["completado_em"] = result["completado_em"]
+
+    return response
 
 
 @router.post("/quiz/{quiz_id}/submit", response_model=QuizResult)
