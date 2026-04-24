@@ -32,9 +32,9 @@ header {
     border-bottom: none;
     padding: 0.75rem 2rem;
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
     gap: 1rem;
 }
 
@@ -63,8 +63,8 @@ header h1 {
 
 nav {
     display: flex;
+    flex-direction: row;
     gap: 0.5rem;
-    flex-wrap: wrap;
 }
 
 .nav-btn {
@@ -627,7 +627,12 @@ footer {
     }
 
     .header-brand {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
         gap: 0.4rem;
+        flex: 1;
+        min-width: 0;
     }
 
     .logo-img {
@@ -636,10 +641,14 @@ footer {
 
     header h1 {
         font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .menu-toggle {
         display: block;
+        flex-shrink: 0;
     }
 
     nav {
