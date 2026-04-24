@@ -5,14 +5,16 @@
 }
 
 :root {
-    --primary-color: #2563eb;
-    --secondary-color: #64748b;
-    --success-color: #22c55e;
-    --error-color: #ef4444;
-    --bg-color: #f8fafc;
+    --primary-color: #b5ac01;
+    --secondary-color: #ecba09;
+    --accent-color: #e86e1c;
+    --success-color: #b5ac01;
+    --error-color: #d41e45;
+    --dark-color: #1b1521;
+    --bg-color: #f5f5f0;
     --card-bg: #ffffff;
-    --text-color: #1e293b;
-    --border-color: #e2e8f0;
+    --text-color: #1b1521;
+    --border-color: #d4d4c9;
 }
 
 body {
@@ -26,14 +28,42 @@ body {
 }
 
 header {
-    background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
+    background-color: var(--dark-color);
+    border-bottom: none;
     padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
+}
+
+header h1 {
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+}
+
+.nav-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.nav-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.nav-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 header h1 {
@@ -150,21 +180,21 @@ main {
 }
 
 .btn-primary:hover {
-    background-color: #1d4ed8;
+    background-color: #9a9001;
 }
 
 .btn-primary:disabled {
-    background-color: var(--secondary-color);
+    background-color: var(--border-color);
     cursor: not-allowed;
 }
 
 .btn-secondary {
-    background-color: var(--secondary-color);
+    background-color: var(--accent-color);
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #475569;
+    background-color: #c75a12;
 }
 
 .quiz-info {
