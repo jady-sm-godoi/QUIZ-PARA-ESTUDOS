@@ -317,6 +317,35 @@ A chave da OpenAI é obtida de (ordem de prioridade):
 
 **Arquivo:** `frontend/js/app.js`
 
+### Estrutura HTML
+
+O frontend possui duas navegação:
+- **Desktop (`.header-nav`):** Botões Início e Histórico no header
+- **Mobile (`.drawer-nav`):** Menu drawer que desliza da esquerda
+
+```html
+<header>
+    <div class="header-brand">
+        <img src="/static/assets/tl.webp" class="logo-img">
+        <h1>Quiz para Estudos</h1>
+    </div>
+    <nav class="header-nav">
+        <button id="btn-home" class="nav-btn active">Início</button>
+        <button id="btn-history" class="nav-btn">Histórico</button>
+    </nav>
+    <button class="menu-toggle">...</button>
+</header>
+
+<nav class="drawer-nav">
+    <div class="nav-header">
+        <img src="/static/assets/tl.webp" class="logo-img">
+        <h1>Quiz para Estudos</h1>
+    </div>
+    <button id="btn-home-drawer" class="nav-btn active">Início</button>
+    <button id="btn-history-drawer" class="nav-btn">Histórico</button>
+</nav>
+```
+
 ### Inicialização
 
 ```javascript
@@ -351,6 +380,17 @@ document.addEventListener('DOMContentLoaded', () => {
 - **Categorias:** Radio buttons para Existing/New
 - **Upload:** Drag & drop com feedback visual (classe `dragover`)
 - **Formulários:** Validação client-side + server-side
+- **Responsividade:** Menu hamburger em telas ≤ 480px
+- **Drawer:** Menu desliza da esquerda com overlay em mobile
+- **Logo:** Imagem tl.webp no header e como favicon
+
+### Breakpoints
+
+| Tamanho | Largura | Comportamento |
+|---------|---------|---------------|
+| Desktop | > 768px | Navbar normal com botões |
+| Tablet | 481-768px | Navbar simplificada |
+| Mobile | ≤ 480px | Menu hamburger + drawer |
 
 ---
 

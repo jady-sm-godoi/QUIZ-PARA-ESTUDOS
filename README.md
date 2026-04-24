@@ -322,6 +322,9 @@ quiz-para-estudos/
 - [x] Drag and drop para upload de arquivos
 - [x] Design responsivo
 - [x] Paleta de cores customizada
+- [x] Menu hamburger em mobile
+- [x] Drawer menu (slide da esquerda)
+- [x] Logo e favicon
 
 ### Segurança e Performance
 

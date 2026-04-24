@@ -48,7 +48,7 @@ class TestFrontendPage:
         page.goto(f"{server}/")
         
         assert page.title() == "Quiz para Estudos"
-        assert page.locator("h1").text_content() == "Quiz para Estudos"
+        assert page.locator("header h1").text_content() == "Quiz para Estudos"
 
     def test_navigation_buttons_exist(self, page, server):
         """Testa que botões de navegação existem"""
