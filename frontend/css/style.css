@@ -469,22 +469,24 @@ footer {
 .file-upload-area {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 1rem;
     margin-top: 0.75rem;
-    flex-wrap: wrap;
-    padding: 1rem;
+    padding: 1.5rem;
     border: 2px dashed var(--border-color);
     border-radius: 8px;
     transition: border-color 0.2s, background-color 0.2s;
+    background-color: var(--bg-color);
 }
 
 .file-upload-area.dragover {
     border-color: var(--primary-color);
-    background-color: rgba(37, 99, 235, 0.05);
+    background-color: rgba(37, 99, 235, 0.08);
 }
 
 .file-upload-area span {
     color: var(--secondary-color);
+    font-size: 0.9rem;
 }
 
 .file-upload-area input[type="file"] {
@@ -492,9 +494,16 @@ footer {
 }
 
 .file-upload-area .file-name {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--primary-color);
-    font-weight: 500;
+    font-weight: 600;
+    background: rgba(37, 99, 235, 0.1);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+}
+
+.file-upload-area .btn {
+    margin: 0;
 }
 
 .btn-sm {
