@@ -41,71 +41,38 @@ function initNavigation() {
 }
 
 function initCategoryRadio() {
-    const generateRadios = document.getElementsByName('categoria-tipo');
-    const uploadRadios = document.getElementsByName('upload-categoria-tipo');
-
-    for (let radio of generateRadios) {
-        radio.addEventListener('change', function() {
-            const selectQuiz = document.getElementById('quiz-categoria');
-            const inputNova = document.getElementById('nova-categoria');
-            
-            if (this.value === 'existing') {
-                selectQuiz.disabled = false;
-                inputNova.disabled = true;
-                inputNova.value = '';
-            } else {
-                selectQuiz.disabled = true;
-                selectQuiz.value = '';
-                inputNova.disabled = false;
-                inputNova.focus();
-            }
-        });
-    }
-
-    for (let radio of uploadRadios) {
-        radio.addEventListener('change', function() {
-            const selectUpload = document.getElementById('upload-category');
-            const inputNova = document.getElementById('upload-new-category');
-            
-            if (this.value === 'existing') {
-                selectUpload.disabled = false;
-                inputNova.disabled = true;
-                inputNova.value = '';
-            } else {
-                selectUpload.disabled = true;
-                selectUpload.value = '';
-                inputNova.disabled = false;
-                inputNova.focus();
-            }
-        });
-    }
-
-    toggleCategoryInputs('generate');
-    toggleCategoryInputs('upload');
+    toggleCategory('generate', 'existing');
+    toggleCategory('upload', 'existing');
 }
 
-function toggleCategoryInputs(formType) {
+function toggleCategory(formType, value) {
     if (formType === 'generate') {
-        const selected = document.querySelector('input[name="categoria-tipo"]:checked');
-        if (selected && selected.value === 'new') {
-            document.getElementById('quiz-categoria').disabled = true;
-            document.getElementById('nova-categoria').disabled = false;
-            document.getElementById('nova-categoria').focus();
+        const selectQuiz = document.getElementById('quiz-categoria');
+        const inputNova = document.getElementById('nova-categoria');
+        
+        if (value === 'existing') {
+            selectQuiz.disabled = false;
+            inputNova.disabled = true;
+            inputNova.value = '';
         } else {
-            document.getElementById('quiz-categoria').disabled = false;
-            document.getElementById('nova-categoria').disabled = true;
-            document.getElementById('nova-categoria').value = '';
+            selectQuiz.disabled = true;
+            selectQuiz.value = '';
+            inputNova.disabled = false;
+            inputNova.focus();
         }
     } else {
-        const selected = document.querySelector('input[name="upload-categoria-tipo"]:checked');
-        if (selected && selected.value === 'new') {
-            document.getElementById('upload-category').disabled = true;
-            document.getElementById('upload-new-category').disabled = false;
-            document.getElementById('upload-new-category').focus();
+        const selectUpload = document.getElementById('upload-category');
+        const inputNova = document.getElementById('upload-new-category');
+        
+        if (value === 'existing') {
+            selectUpload.disabled = false;
+            inputNova.disabled = true;
+            inputNova.value = '';
         } else {
-            document.getElementById('upload-category').disabled = false;
-            document.getElementById('upload-new-category').disabled = true;
-            document.getElementById('upload-new-category').value = '';
+            selectUpload.disabled = true;
+            selectUpload.value = '';
+            inputNova.disabled = false;
+            inputNova.focus();
         }
     }
 }

@@ -31,11 +31,11 @@
                         <label>Categoria:</label>
                         <div class="category-options">
                             <label class="radio-label">
-                                <input type="radio" name="categoria-tipo" value="existing" checked>
+                                <input type="radio" name="categoria-tipo" value="existing" checked onclick="toggleCategory('generate', 'existing')">
                                 Categoria existente
                             </label>
                             <label class="radio-label">
-                                <input type="radio" name="categoria-tipo" value="new">
+                                <input type="radio" name="categoria-tipo" value="new" onclick="toggleCategory('generate', 'new')">
                                 Nova categoria
                             </label>
                         </div>
