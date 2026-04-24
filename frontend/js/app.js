@@ -182,10 +182,17 @@ function initGenerateForm() {
         } else {
             categoria = document.getElementById('nova-categoria').value || null;
         }
+
+        const hasContent = conteudo || file;
         
-        if (!conteudo && !file) {
-            alert('Adicione conteúdo ou faça upload de um arquivo');
+        if (!hasContent && (categoriaTipo === 'new' || !categoria)) {
+            alert('Adicione conteúdo ou faça upload de um arquivo, ou selecione uma categoria existente');
             return;
+        }
+        
+        if (!hasContent && categoriaTipo === 'existing' && categoria) {
+            const useExisting = confirm('Nenhum conteúdo novo adicionado. Deseja usar o material existente da categoria "' + categoria + '" para gerar o quiz?');
+            if (!useExisting) return;
         }
         
         showLoading('Gerando quiz...');
