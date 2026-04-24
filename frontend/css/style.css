@@ -650,7 +650,7 @@ footer {
         height: 100%;
         background-color: var(--dark-color);
         flex-direction: column;
-        padding: 4rem 1rem 1rem;
+        padding: 1rem;
         gap: 0.5rem;
         z-index: 1000;
         transition: left 0.3s ease;
@@ -659,6 +659,31 @@ footer {
 
     nav.active {
         left: 0;
+    }
+
+    .nav-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    .nav-header .logo-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-header .logo-img {
+        height: 32px;
+        width: auto;
+    }
+
+    .nav-header h1 {
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+        margin: 0;
     }
 
     nav.active ~ .menu-overlay {
@@ -793,5 +818,13 @@ footer {
 
     nav.active {
         left: 0;
+    }
+
+    .nav-header h1 {
+        font-size: 1rem;
+    }
+
+    .nav-header .logo-img {
+        height: 28px;
     }
 }
