@@ -415,7 +415,7 @@ function initNewQuiz() {
         document.getElementById('form-generate').reset();
         
         document.querySelectorAll('input[name="categoria-tipo"]').forEach(r => r.checked = r.value === 'existing');
-        toggleCategoryInputs('generate');
+        toggleCategory('generate', 'existing');
         
         showSection('generate');
     });
