@@ -40,6 +40,7 @@ header {
 
 .header-brand {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 0.75rem;
 }
@@ -61,7 +62,7 @@ header h1 {
     margin: 0;
 }
 
-nav {
+header nav {
     display: flex;
     flex-direction: row;
     gap: 0.5rem;
@@ -651,7 +652,7 @@ footer {
         flex-shrink: 0;
     }
 
-    nav {
+    nav.drawer-nav {
         position: fixed;
         top: 0;
         left: -280px;
@@ -666,12 +667,13 @@ footer {
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
     }
 
-    nav.active {
+    nav.drawer-nav.active {
         left: 0;
     }
 
     .nav-header {
         display: flex;
+        flex-direction: row;
         align-items: center;
         gap: 0.75rem;
         padding-bottom: 1rem;
@@ -695,7 +697,7 @@ footer {
         margin: 0;
     }
 
-    nav.active ~ .menu-overlay {
+    nav.drawer-nav.active ~ .menu-overlay {
         display: block;
         opacity: 1;
     }

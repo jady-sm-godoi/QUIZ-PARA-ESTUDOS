@@ -84,7 +84,7 @@ function initNavigation() {
     });
 
     const menuToggle = document.querySelector('.menu-toggle');
-    const nav = document.querySelector('nav');
+    const nav = document.querySelector('.drawer-nav');
     const overlay = document.querySelector('.menu-overlay');
     
     if (menuToggle && nav) {
@@ -101,7 +101,7 @@ function initNavigation() {
 }
 
 function closeMenu() {
-    const nav = document.querySelector('nav');
+    const nav = document.querySelector('.drawer-nav');
     const menuToggle = document.querySelector('.menu-toggle');
     const overlay = document.querySelector('.menu-overlay');
     if (nav) nav.classList.remove('active');
