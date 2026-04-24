@@ -73,15 +73,33 @@ function initFileUpload() {
 }
 
 function initNavigation() {
-    document.getElementById('btn-home').addEventListener('click', () => {
-        showSection('generate');
+    const btnHome = document.getElementById('btn-home');
+    const btnHistory = document.getElementById('btn-history');
+    const btnHomeDrawer = document.getElementById('btn-home-drawer');
+    const btnHistoryDrawer = document.getElementById('btn-history-drawer');
+
+    function syncButtons(activeBtn, otherBtn) {
+        activeBtn.classList.add('active');
+        otherBtn.classList.remove('active');
+    }
+
+    function navigateTo(section) {
+        showSection(section);
+        if (section === 'generate') {
+            syncButtons(btnHome, btnHistory);
+            syncButtons(btnHomeDrawer, btnHistoryDrawer);
+        } else if (section === 'history') {
+            syncButtons(btnHistory, btnHome);
+            syncButtons(btnHistoryDrawer, btnHomeDrawer);
+            loadHistory();
+        }
         closeMenu();
-    });
-    document.getElementById('btn-history').addEventListener('click', () => {
-        showSection('history');
-        loadHistory();
-        closeMenu();
-    });
+    }
+
+    btnHome.addEventListener('click', () => navigateTo('generate'));
+    btnHomeDrawer.addEventListener('click', () => navigateTo('generate'));
+    btnHistory.addEventListener('click', () => navigateTo('history'));
+    btnHistoryDrawer.addEventListener('click', () => navigateTo('history'));
 
     const menuToggle = document.querySelector('.menu-toggle');
     const nav = document.querySelector('.drawer-nav');
