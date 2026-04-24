@@ -500,6 +500,11 @@ footer {
     background: rgba(37, 99, 235, 0.1);
     padding: 0.4rem 0.8rem;
     border-radius: 4px;
+    display: none;
+}
+
+.file-upload-area .file-name:not(:empty) {
+    display: inline-block;
 }
 
 .file-upload-area .btn {

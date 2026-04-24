@@ -23,12 +23,17 @@ function initFileUpload() {
     const uploadArea = document.getElementById('file-upload-area');
     let fileInputRef = fileInput;
     
+    const updateFileName = (name) => {
+        fileNameDisplay.textContent = name;
+        fileNameDisplay.style.display = name ? 'inline-block' : 'none';
+    };
+    
     if (fileInput) {
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                fileNameDisplay.textContent = e.target.files[0].name;
+                updateFileName(e.target.files[0].name);
             } else {
-                fileNameDisplay.textContent = '';
+                updateFileName('');
             }
         });
     }
@@ -56,13 +61,15 @@ function initFileUpload() {
                 
                 if (validTypes.includes(ext)) {
                     fileInputRef.files = files;
-                    fileNameDisplay.textContent = file.name;
+                    updateFileName(file.name);
                 } else {
                     alert('Tipo de arquivo inválido. Use: .txt, .pdf ou .docx');
                 }
             }
         });
     }
+
+    updateFileName('');
 }
 
 function initNavigation() {
