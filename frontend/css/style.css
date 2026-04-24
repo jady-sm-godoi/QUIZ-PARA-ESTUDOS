@@ -416,10 +416,10 @@ footer {
 }
 
 @media (max-width: 600px) {
-    header {
+    /* header {
         flex-direction: column;
         align-items: flex-start;
-    }
+    } */
 
     main {
         padding: 1rem;
