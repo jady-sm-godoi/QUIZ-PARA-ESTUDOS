@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initUploadForm();
     initHistory();
     initPartsModal();
+    initCategoryRadio();
     loadCategories();
 });
 
@@ -21,6 +22,50 @@ function initNavigation() {
         showSection('history');
         loadHistory();
     });
+}
+
+function initCategoryRadio() {
+    document.querySelectorAll('input[name="categoria-tipo"]').forEach(radio => {
+        radio.addEventListener('change', () => toggleCategoryInputs('generate'));
+    });
+
+    document.querySelectorAll('input[name="upload-categoria-tipo"]').forEach(radio => {
+        radio.addEventListener('change', () => toggleCategoryInputs('upload'));
+    });
+}
+
+function toggleCategoryInputs(formType) {
+    const prefix = formType === 'generate' ? '' : 'upload-';
+
+    const radios = document.querySelectorAll(`input[name="${prefix}categoria-tipo"]`);
+    const select = document.getElementById(`${prefix}quiz-categoria`.replace('quiz-', prefix === 'upload-' ? 'upload-' : 'quiz-'));
+    const input = document.getElementById(`${prefix}nova-categoria`);
+
+    if (formType === 'generate') {
+        const selectedValue = document.querySelector('input[name="categoria-tipo"]:checked').value;
+
+        if (selectedValue === 'existing') {
+            select.disabled = false;
+            input.disabled = true;
+            input.value = '';
+        } else {
+            select.disabled = true;
+            select.value = '';
+            input.disabled = false;
+        }
+    } else {
+        const selectedValue = document.querySelector('input[name="upload-categoria-tipo"]:checked').value;
+
+        if (selectedValue === 'existing') {
+            select.disabled = false;
+            input.disabled = true;
+            input.value = '';
+        } else {
+            select.disabled = true;
+            select.value = '';
+            input.disabled = false;
+        }
+    }
 }
 
 function showSection(sectionId) {
@@ -78,9 +123,14 @@ function initGenerateForm() {
         const conteudo = document.getElementById('quiz-conteudo').value;
         const numPeruntas = parseInt(document.getElementById('quiz-perguntas').value);
         
-        let categoria = document.getElementById('quiz-categoria').value;
-        const novaCategoria = document.getElementById('nova-categoria').value;
-        if (novaCategoria) categoria = novaCategoria;
+        const categoriaTipo = document.querySelector('input[name="categoria-tipo"]:checked').value;
+        let categoria = null;
+        
+        if (categoriaTipo === 'existing') {
+            categoria = document.getElementById('quiz-categoria').value || null;
+        } else {
+            categoria = document.getElementById('nova-categoria').value || null;
+        }
         
         showLoading('Gerando quiz...');
         
@@ -92,7 +142,7 @@ function initGenerateForm() {
                     titulo,
                     conteudo,
                     num_perguntas: numPeruntas,
-                    categoria: categoria || null
+                    categoria
                 })
             });
             
@@ -285,6 +335,10 @@ function initNewQuiz() {
         currentQuizId = null;
         userAnswers = {};
         document.getElementById('form-generate').reset();
+        
+        document.querySelectorAll('input[name="categoria-tipo"]').forEach(r => r.checked = r.value === 'existing');
+        toggleCategoryInputs('generate');
+        
         showSection('generate');
     });
 }
@@ -301,9 +355,14 @@ function initUploadForm() {
             return;
         }
         
-        let categoria = document.getElementById('upload-category').value;
-        const novaCategoria = document.getElementById('upload-new-category').value;
-        if (novaCategoria) categoria = novaCategoria;
+        const categoriaTipo = document.querySelector('input[name="upload-categoria-tipo"]:checked').value;
+        let categoria = null;
+        
+        if (categoriaTipo === 'existing') {
+            categoria = document.getElementById('upload-category').value || null;
+        } else {
+            categoria = document.getElementById('upload-new-category').value || null;
+        }
         
         showLoading('Enviando arquivo...');
         

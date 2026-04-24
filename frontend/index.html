@@ -28,11 +28,21 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="quiz-categoria">Categoria:</label>
-                        <select id="quiz-categoria">
-                            <option value="">Selecione ou digite nova...</option>
+                        <label>Categoria:</label>
+                        <div class="category-options">
+                            <label class="radio-label">
+                                <input type="radio" name="categoria-tipo" value="existing" checked>
+                                Categoria existente
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="categoria-tipo" value="new">
+                                Nova categoria
+                            </label>
+                        </div>
+                        <select id="quiz-categoria" class="categoria-select">
+                            <option value="">Selecione uma categoria...</option>
                         </select>
-                        <input type="text" id="nova-categoria" placeholder="Nova categoria (opcional)">
+                        <input type="text" id="nova-categoria" class="nova-categoria-input" placeholder="Digite o nome da nova categoria" disabled>
                     </div>
 
                     <div class="form-group">
@@ -84,15 +94,25 @@
                 <h2>Upload de Material</h2>
                 <form id="form-upload">
                     <div class="form-group">
-                        <label for="upload-file">Arquivo (TXT ou PDF):</label>
-                        <input type="file" id="upload-file" accept=".txt,.pdf">
+                        <label for="upload-file">Arquivo:</label>
+                        <input type="file" id="upload-file" accept=".txt,.pdf,.docx">
                     </div>
                     <div class="form-group">
-                        <label for="upload-category">Categoria:</label>
-                        <select id="upload-category">
-                            <option value="">Selecione ou digite nova...</option>
+                        <label>Categoria:</label>
+                        <div class="category-options">
+                            <label class="radio-label">
+                                <input type="radio" name="upload-categoria-tipo" value="existing" checked>
+                                Categoria existente
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="upload-categoria-tipo" value="new">
+                                Nova categoria
+                            </label>
+                        </div>
+                        <select id="upload-category" class="categoria-select">
+                            <option value="">Selecione uma categoria...</option>
                         </select>
-                        <input type="text" id="upload-new-category" placeholder="Nova categoria (opcional)">
+                        <input type="text" id="upload-new-category" class="nova-categoria-input" placeholder="Digite o nome da nova categoria" disabled>
                     </div>
                     <button type="submit" class="btn btn-primary">Upload</button>
                 </form>
