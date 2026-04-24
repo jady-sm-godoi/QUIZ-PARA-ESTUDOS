@@ -73,11 +73,32 @@ function initFileUpload() {
 }
 
 function initNavigation() {
-    document.getElementById('btn-home').addEventListener('click', () => showSection('generate'));
+    document.getElementById('btn-home').addEventListener('click', () => {
+        showSection('generate');
+        closeMenu();
+    });
     document.getElementById('btn-history').addEventListener('click', () => {
         showSection('history');
         loadHistory();
+        closeMenu();
     });
+
+    const menuToggle = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('nav');
+    
+    if (menuToggle && nav) {
+        menuToggle.addEventListener('click', () => {
+            nav.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        });
+    }
+}
+
+function closeMenu() {
+    const nav = document.querySelector('nav');
+    const menuToggle = document.querySelector('.menu-toggle');
+    if (nav) nav.classList.remove('active');
+    if (menuToggle) menuToggle.classList.remove('active');
 }
 
 function initCategoryRadio() {
