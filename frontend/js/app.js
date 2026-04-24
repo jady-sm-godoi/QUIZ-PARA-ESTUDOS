@@ -13,8 +13,24 @@ document.addEventListener('DOMContentLoaded', () => {
     initHistory();
     initPartsModal();
     initCategoryRadio();
+    initFileUpload();
     loadCategories();
 });
+
+function initFileUpload() {
+    const fileInput = document.getElementById('quiz-file');
+    const fileNameDisplay = document.getElementById('quiz-file-name');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileNameDisplay.textContent = e.target.files[0].name;
+            } else {
+                fileNameDisplay.textContent = '';
+            }
+        });
+    }
+}
 
 function initNavigation() {
     document.getElementById('btn-home').addEventListener('click', () => showSection('generate'));
@@ -122,6 +138,8 @@ function initGenerateForm() {
         const titulo = document.getElementById('quiz-titulo').value;
         const conteudo = document.getElementById('quiz-conteudo').value;
         const numPeruntas = parseInt(document.getElementById('quiz-perguntas').value);
+        const fileInput = document.getElementById('quiz-file');
+        const file = fileInput.files[0];
         
         const categoriaTipo = document.querySelector('input[name="categoria-tipo"]:checked').value;
         let categoria = null;
@@ -132,19 +150,39 @@ function initGenerateForm() {
             categoria = document.getElementById('nova-categoria').value || null;
         }
         
+        if (!conteudo && !file) {
+            alert('Adicione conteúdo ou faça upload de um arquivo');
+            return;
+        }
+        
         showLoading('Gerando quiz...');
         
         try {
-            const response = await fetch(`${API_BASE}/generate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    titulo,
-                    conteudo,
-                    num_perguntas: numPeruntas,
-                    categoria
-                })
-            });
+            let response;
+            
+            if (file && !conteudo) {
+                const formData = new FormData();
+                formData.append('titulo', titulo);
+                formData.append('num_perguntas', numPeruntas);
+                if (categoria) formData.append('categoria', categoria);
+                formData.append('file', file);
+                
+                response = await fetch(`${API_BASE}/generate/file`, {
+                    method: 'POST',
+                    body: formData
+                });
+            } else {
+                response = await fetch(`${API_BASE}/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        titulo,
+                        conteudo,
+                        num_perguntas: numPeruntas,
+                        categoria
+                    })
+                });
+            }
             
             if (!response.ok) {
                 const error = await response.json();

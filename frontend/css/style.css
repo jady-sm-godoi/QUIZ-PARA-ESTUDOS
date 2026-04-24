@@ -465,3 +465,30 @@ footer {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+
+.file-upload-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.file-upload-area span {
+    color: var(--secondary-color);
+}
+
+.file-upload-area input[type="file"] {
+    display: none;
+}
+
+.file-upload-area .file-name {
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}

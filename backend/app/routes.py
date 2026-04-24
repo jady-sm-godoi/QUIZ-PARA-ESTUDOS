@@ -158,6 +158,98 @@ async def generate_quiz(request: QuizGenerateRequest):
     )
 
 
+@router.post("/generate/file")
+async def generate_quiz_from_file(
+    file: UploadFile = File(...),
+    titulo: str = Form(...),
+    num_perguntas: int = Form(10),
+    categoria: Optional[str] = Form(None)
+):
+    from app.agents import QuizAgent
+    from app.pdf_utils import extract_text
+
+    content = await file.read()
+    content_text = extract_text(content, file.filename or "")
+
+    if not content_text.strip():
+        raise HTTPException(status_code=400, detail="Não foi possível extrair texto do arquivo")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    content_to_use = ""
+
+    if categoria:
+        cursor.execute("""
+            SELECT content FROM materials WHERE category = ?
+        """, (categoria,))
+        materials = cursor.fetchall()
+        if materials:
+            content_to_use = "\n\n".join([m["content"] for m in materials])
+            content_to_use += "\n\n" + content_text
+        else:
+            content_to_use = content_text
+    else:
+        content_to_use = content_text
+
+    needs_split = get_content_needs_split(content_to_use)
+    parts = split_content_into_parts(content_to_use, MAX_CONTENT_CHARS)
+
+    if needs_split:
+        conn.close()
+        from app.models import QuizPartsResponse, ContentPartResponse
+        return QuizPartsResponse(
+            titulo=titulo,
+            categoria=categoria,
+            total_parts=len(parts),
+            parts=[ContentPartResponse(**{k: v for k, v in p.items() if k != "content"}) for p in parts],
+            message=f"Este material tem {len(content_to_use)} caracteres e foi dividido em {len(parts)} partes. "
+                   f"Escolha part_index de 0 a {len(parts)-1} para gerar o quiz de uma parte específica."
+        )
+
+    content_to_use = truncate_content(content_to_use, MAX_CONTENT_CHARS)
+
+    agent = QuizAgent()
+    result = agent.generate(content_to_use, num_questions=num_perguntas)
+
+    quiz_id = str(uuid.uuid4())
+    material_hash = compute_hash(content_to_use)
+
+    cursor.execute("""
+        INSERT INTO quizzes (id, titulo, material_hash, criado_em)
+        VALUES (?, ?, ?, ?)
+    """, (quiz_id, titulo, material_hash, datetime.now().isoformat()))
+
+    perguntas = []
+    for i, q in enumerate(result.get("questions", [])):
+        cursor.execute("""
+            INSERT INTO questions (quiz_id, enunciado, opcoes, resposta_correta, explicacao)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            quiz_id,
+            q["enunciado"],
+            json.dumps(q["opcoes"]),
+            q["resposta_correta"],
+            q.get("explicacao", "")
+        ))
+
+        perguntas.append(QuestionModel(
+            enunciado=q["enunciado"],
+            opcoes=q["opcoes"],
+            resposta_correta=q["resposta_correta"],
+            explicacao=q.get("explicacao", "")
+        ))
+
+    conn.commit()
+    conn.close()
+
+    return QuizResponse(
+        quiz_id=quiz_id,
+        titulo=titulo,
+        perguntas=perguntas
+    )
+
+
 @router.get("/quiz/{quiz_id}")
 async def get_quiz(quiz_id: str):
     conn = get_connection()
