@@ -544,6 +544,7 @@ footer {
     cursor: pointer;
     padding: 0.5rem;
     margin-left: auto;
+    z-index: 1001;
 }
 
 .menu-toggle span {
@@ -554,6 +555,37 @@ footer {
     margin: 5px 0;
     border-radius: 2px;
     transition: all 0.3s ease;
+}
+
+.menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Overlay do menu */
+.menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.menu-overlay.active {
+    display: block;
+    opacity: 1;
 }
 
 /* Responsividade - Tablet (até 768px) */
@@ -611,30 +643,38 @@ footer {
     }
 
     nav {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 280px;
+        height: 100%;
         background-color: var(--dark-color);
         flex-direction: column;
-        padding: 1rem;
+        padding: 4rem 1rem 1rem;
         gap: 0.5rem;
-        border-top: 1px solid var(--border-color);
+        z-index: 1000;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
     }
 
     nav.active {
-        display: flex;
+        left: 0;
+    }
+
+    nav.active ~ .menu-overlay {
+        display: block;
+        opacity: 1;
     }
 
     .nav-btn {
         width: 100%;
-        text-align: center;
-        padding: 0.75rem;
+        text-align: left;
+        padding: 0.75rem 1rem;
         background-color: rgba(255, 255, 255, 0.05);
     }
 
-    .nav-btn:hover {
+    .nav-btn:hover,
+    .nav-btn.active {
         background-color: var(--primary-color);
     }
 
@@ -741,5 +781,17 @@ footer {
 
     .history-score {
         font-size: 0.85rem;
+    }
+}
+
+/* Telas muito pequenas (até 320px) - Drawer fullscreen */
+@media screen and (max-width: 320px) {
+    nav {
+        width: 100%;
+        left: -100%;
+    }
+
+    nav.active {
+        left: 0;
     }
 }

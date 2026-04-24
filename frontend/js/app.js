@@ -85,20 +85,28 @@ function initNavigation() {
 
     const menuToggle = document.querySelector('.menu-toggle');
     const nav = document.querySelector('nav');
+    const overlay = document.querySelector('.menu-overlay');
     
     if (menuToggle && nav) {
         menuToggle.addEventListener('click', () => {
             nav.classList.toggle('active');
             menuToggle.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
         });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', closeMenu);
     }
 }
 
 function closeMenu() {
     const nav = document.querySelector('nav');
     const menuToggle = document.querySelector('.menu-toggle');
+    const overlay = document.querySelector('.menu-overlay');
     if (nav) nav.classList.remove('active');
     if (menuToggle) menuToggle.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
 }
 
 function initCategoryRadio() {
