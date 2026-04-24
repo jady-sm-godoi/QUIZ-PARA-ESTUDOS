@@ -472,6 +472,15 @@ footer {
     gap: 1rem;
     margin-top: 0.75rem;
     flex-wrap: wrap;
+    padding: 1rem;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.file-upload-area.dragover {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.05);
 }
 
 .file-upload-area span {

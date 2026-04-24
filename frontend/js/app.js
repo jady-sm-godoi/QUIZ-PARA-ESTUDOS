@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function initFileUpload() {
     const fileInput = document.getElementById('quiz-file');
     const fileNameDisplay = document.getElementById('quiz-file-name');
+    const uploadArea = document.getElementById('file-upload-area');
+    let fileInputRef = fileInput;
     
     if (fileInput) {
         fileInput.addEventListener('change', (e) => {
@@ -27,6 +29,37 @@ function initFileUpload() {
                 fileNameDisplay.textContent = e.target.files[0].name;
             } else {
                 fileNameDisplay.textContent = '';
+            }
+        });
+    }
+
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const validTypes = ['.txt', '.pdf', '.docx'];
+                const ext = '.' + file.name.split('.').pop().toLowerCase();
+                
+                if (validTypes.includes(ext)) {
+                    fileInputRef.files = files;
+                    fileNameDisplay.textContent = file.name;
+                } else {
+                    alert('Tipo de arquivo inválido. Use: .txt, .pdf ou .docx');
+                }
             }
         });
     }
