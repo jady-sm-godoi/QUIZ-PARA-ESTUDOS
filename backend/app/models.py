@@ -17,7 +17,7 @@ class QuizGenerateRequest(BaseModel):
 class QuestionModel(BaseModel):
     enunciado: str
     opcoes: list[str]
-    resposta_correta: int = Field(ge=0, le=3)
+    resposta_correta: int = Field(ge=0, le=4)
     explicacao: str = ""
 
 

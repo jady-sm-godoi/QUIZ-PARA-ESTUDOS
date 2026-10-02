@@ -65,8 +65,8 @@ class TestQuizAgentMocked:
         assert result["questions"][0]["resposta_correta"] == 2
 
     @patch('app.agents.Agent')
-    def test_generate_quiz_with_four_options(self, mock_agent_class):
-        """Cada pergunta deve ter 4 opções"""
+    def test_generate_quiz_with_five_options(self, mock_agent_class):
+        """Cada pergunta deve ter 5 opções (estilo FGV)"""
         from app.agents import QuizAgent
 
         mock_agent_instance = MagicMock()
@@ -74,7 +74,7 @@ class TestQuizAgentMocked:
             "questions": [
                 {
                     "enunciado": "Teste?",
-                    "opcoes": ["A", "B", "C", "D"],
+                    "opcoes": ["A", "B", "C", "D", "E"],
                     "resposta_correta": 0,
                     "explicacao": "Porque sim"
                 }
@@ -85,7 +85,7 @@ class TestQuizAgentMocked:
         agent = QuizAgent()
         result = agent.generate("Conteúdo", num_questions=1)
 
-        assert len(result["questions"][0]["opcoes"]) == 4
+        assert len(result["questions"][0]["opcoes"]) == 5
 
     @patch('app.agents.Agent')
     def test_generate_quiz_with_valid_resposta_index(self, mock_agent_class):
