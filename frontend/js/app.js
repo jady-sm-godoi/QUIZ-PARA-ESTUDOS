@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initPartsModal();
     initCategoryRadio();
     initFileUpload();
+    initThemeToggle();
     loadCategories();
 });
 
@@ -581,6 +582,31 @@ async function viewQuiz(quizId) {
     } finally {
         hideLoading();
     }
+}
+
+function initThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+    const toggleDrawer = document.getElementById('theme-toggle-drawer');
+    const html = document.documentElement;
+    const saved = localStorage.getItem('theme');
+
+    if (saved === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+        toggle.textContent = '🌙';
+        if (toggleDrawer) toggleDrawer.textContent = '🌙';
+    }
+
+    function switchTheme() {
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        const newTheme = isDark ? '' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        toggle.textContent = isDark ? '☀️' : '🌙';
+        if (toggleDrawer) toggleDrawer.textContent = isDark ? '☀️' : '🌙';
+    }
+
+    toggle.addEventListener('click', switchTheme);
+    if (toggleDrawer) toggleDrawer.addEventListener('click', switchTheme);
 }
 
 function formatDate(dateString) {
