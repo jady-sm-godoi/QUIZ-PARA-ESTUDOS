@@ -282,6 +282,7 @@ function initGenerateForm() {
                 showPartsModal(data);
             } else {
                 displayQuiz(data);
+                loadCategories();
             }
         } catch (error) {
             alert('Erro: ' + error.message);

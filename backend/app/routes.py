@@ -149,6 +149,16 @@ async def generate_quiz(request: QuizGenerateRequest):
         ))
 
     conn.commit()
+
+    if request.categoria and request.conteudo:
+        cursor.execute("SELECT hash FROM materials WHERE hash = ?", (material_hash,))
+        if not cursor.fetchone():
+            cursor.execute("""
+                INSERT INTO materials (hash, filename, content, category, criado_em)
+                VALUES (?, ?, ?, ?, ?)
+            """, (material_hash, None, request.conteudo, request.categoria, datetime.now().isoformat()))
+        conn.commit()
+
     conn.close()
 
     return QuizResponse(
@@ -241,6 +251,17 @@ async def generate_quiz_from_file(
         ))
 
     conn.commit()
+
+    if categoria:
+        file_hash = compute_hash(content_text)
+        cursor.execute("SELECT hash FROM materials WHERE hash = ?", (file_hash,))
+        if not cursor.fetchone():
+            cursor.execute("""
+                INSERT INTO materials (hash, filename, content, category, criado_em)
+                VALUES (?, ?, ?, ?, ?)
+            """, (file_hash, file.filename or "arquivo", content_text, categoria, datetime.now().isoformat()))
+        conn.commit()
+
     conn.close()
 
     return QuizResponse(
