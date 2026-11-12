@@ -12,6 +12,7 @@ class QuizGenerateRequest(BaseModel):
     num_perguntas: int = Field(default=10, ge=1, le=50)
     categoria: Optional[str] = None
     part_index: Optional[int] = Field(default=None, description="Índice da parte do conteúdo (se houver divisão)")
+    prompt_name: Optional[str] = Field(default=None, description="Nome do arquivo de prompt em app/prompts (sem .md)")
 
 
 class QuestionModel(BaseModel):

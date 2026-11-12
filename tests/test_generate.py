@@ -3,6 +3,7 @@ from httpx import AsyncClient, ASGITransport
 from unittest.mock import patch, MagicMock
 from app.main import app
 from app.database import get_connection, init_db, set_test_db
+from app.prompts import DEFAULT_PROMPT
 import tempfile
 import os
 from datetime import datetime
@@ -210,3 +211,68 @@ async def test_generate_quiz_response_structure(temp_db):
         assert "opcoes" in pergunta
         assert "resposta_correta" in pergunta
         assert "explicacao" in pergunta
+
+
+@pytest.mark.asyncio
+async def test_generate_quiz_uses_selected_prompt(temp_db):
+    """O prompt escolhido deve ser repassado ao QuizAgent."""
+    mock_questions = {"questions": []}
+
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        mock_agent = MagicMock()
+        mock_agent.generate.return_value = mock_questions
+        mock_agent_class.return_value = mock_agent
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post("/api/generate", json={
+                "titulo": "Teste Prompt",
+                "conteudo": "Conteúdo",
+                "prompt_name": DEFAULT_PROMPT
+            })
+
+        assert response.status_code == 200
+        mock_agent_class.assert_called_once_with(prompt_name=DEFAULT_PROMPT)
+
+
+@pytest.mark.asyncio
+async def test_generate_quiz_rejects_invalid_prompt(temp_db):
+    """Prompt inexistente deve retornar 400 sem chamar o agente."""
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post("/api/generate", json={
+                "titulo": "Teste Prompt Inválido",
+                "conteudo": "Conteúdo",
+                "prompt_name": "nao_existe"
+            })
+
+        assert response.status_code == 400
+        assert "nao_existe" in response.json()["detail"]
+        mock_agent_class.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_generate_file_uses_selected_prompt(temp_db):
+    """A rota de arquivo deve repassar o prompt escolhido."""
+    mock_questions = {"questions": []}
+
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        mock_agent = MagicMock()
+        mock_agent.generate.return_value = mock_questions
+        mock_agent_class.return_value = mock_agent
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post(
+                "/api/generate/file",
+                files={"file": ("material.txt", b"Conteudo do material", "text/plain")},
+                data={
+                    "titulo": "Teste Arquivo",
+                    "num_perguntas": "1",
+                    "prompt_name": DEFAULT_PROMPT
+                }
+            )
+
+        assert response.status_code == 200
+        mock_agent_class.assert_called_once_with(prompt_name=DEFAULT_PROMPT)

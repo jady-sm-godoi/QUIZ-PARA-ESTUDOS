@@ -66,6 +66,19 @@ class TestFrontendPage:
         assert page.locator("#quiz-perguntas").is_visible()
         assert page.locator("#form-generate button[type='submit']").is_visible()
 
+    def test_prompt_select_is_populated(self, page, server):
+        """O select de prompt deve ser carregado a partir da API"""
+        page.goto(f"{server}/")
+
+        prompt_select = page.locator("#quiz-prompt")
+        assert prompt_select.is_visible()
+
+        page.wait_for_function(
+            "document.querySelector('#quiz-prompt option') !== null && "
+            "document.querySelector('#quiz-prompt option').value !== ''"
+        )
+        assert prompt_select.input_value() != ""
+
     def test_category_radio_buttons(self, page, server):
         """Testa botões de categoria existente/nova"""
         page.goto(f"{server}/")

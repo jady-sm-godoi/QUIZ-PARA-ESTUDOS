@@ -125,6 +125,17 @@ OPENAI_API_KEY=sk-sua-chave-aqui
 
 O SQLite criará automaticamente o banco de dados `quiz.db` na pasta `backend/` quando a aplicação iniciar pela primeira vez.
 
+### 3. Editando o prompt
+
+Os prompts enviados ao modelo ficam em `backend/app/prompts/`. O arquivo `FGV-TI.md` é o padrão; qualquer outro `.md` na pasta (como `Cesgranrio.md`) aparece automaticamente no select "Banca / Estilo do prompt" do formulário.
+
+- Mantenha o placeholder `{num_questions}` onde a quantidade de perguntas deve aparecer.
+- Mantenha o `\n` como texto (barra invertida + n) dentro do exemplo de JSON.
+- Se um dia embaralhar alternativas no código, não embaralhe questões com afirmativas numeradas (I, II, III), pois a ordem delas é lógica.
+- Para adicionar outra banca/estilo, crie outro `.md` na mesma pasta (ex.: `fgv.md`, `cespe.md`, `fcc.md`). O nome do arquivo é o valor enviado no campo `prompt_name`.
+- O prompt padrão é definido por `DEFAULT_PROMPT` em `backend/app/prompts/__init__.py`.
+- Edite o `.md` e o próximo quiz já usa o novo texto, sem precisar reiniciar o servidor.
+
 ---
 
 ## Rodando a Aplicação
@@ -214,6 +225,7 @@ pytest -x
 | `GET` | `/` | Serve o frontend estático |
 | `GET` | `/api/categories` | Lista todas as categorias |
 | `GET` | `/api/categories/{category}/materials` | Lista materiais de uma categoria |
+| `GET` | `/api/prompts` | Lista os prompts disponíveis e o padrão |
 | `POST` | `/api/generate` | Gera quiz a partir de texto |
 | `POST` | `/api/generate/file` | Gera quiz a partir de arquivo |
 | `GET` | `/api/quiz/{quiz_id}` | Busca quiz por ID |
@@ -259,6 +271,10 @@ quiz-para-estudos/
 │   │   ├── models.py            # Modelos Pydantic
 │   │   ├── database.py          # SQLite conexão e queries
 │   │   ├── agents.py            # Agno Agent (GPT-4o-mini)
+│   │   ├── prompts/
+│   │   │   ├── __init__.py      # Carregamento dos prompts (.md)
+│   │   │   ├── Cesgranrio.md    # Prompt estilo Cesgranrio
+│   │   │   └── FGV-TI.md        # Prompt estilo FGV (padrão)
 │   │   ├── pdf_utils.py         # Extração de texto (PDF/DOCX)
 │   │   └── config.py            # Configurações
 │   ├── requirements.txt         # Dependências Python
@@ -318,6 +334,7 @@ quiz-para-estudos/
 ### Interface
 
 - [x] Seleção de categoria via radio buttons
+- [x] Seleção de prompt/banca por quiz
 - [x] Toggle entre categoria existente e nova
 - [x] Drag and drop para upload de arquivos
 - [x] Design responsivo

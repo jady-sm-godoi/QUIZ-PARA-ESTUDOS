@@ -1,6 +1,7 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+from app.prompts import DEFAULT_PROMPT
 
 
 @pytest.mark.asyncio
@@ -65,3 +66,16 @@ async def test_categories_returns_list():
         response = await client.get("/api/categories")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
+
+
+@pytest.mark.asyncio
+async def test_prompts_endpoint_returns_default_and_list():
+    """Deve listar os prompts disponíveis e o padrão."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/api/prompts")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["default"] == DEFAULT_PROMPT
+        assert DEFAULT_PROMPT in data["prompts"]

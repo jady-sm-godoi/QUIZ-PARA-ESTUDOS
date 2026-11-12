@@ -3,6 +3,7 @@ const API_BASE = '/api';
 let currentQuiz = null;
 let currentQuizId = null;
 let userAnswers = {};
+let currentPromptName = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFileUpload();
     initThemeToggle();
     loadCategories();
+    loadPrompts();
 });
 
 function initFileUpload() {
@@ -186,6 +188,32 @@ function hideLoading() {
     document.getElementById('loading-modal').classList.add('hidden');
 }
 
+async function loadPrompts() {
+    const select = document.getElementById('quiz-prompt');
+    if (!select) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/prompts`);
+        if (!response.ok) throw new Error('Erro ao carregar prompts');
+
+        const data = await response.json();
+        const prompts = data.prompts || [];
+
+        select.innerHTML = '';
+        prompts.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name === data.default ? `${name} (padrão)` : name;
+            option.selected = name === data.default;
+            select.appendChild(option);
+        });
+
+        if (data.default) select.value = data.default;
+    } catch (error) {
+        console.error('Erro ao carregar prompts:', error);
+    }
+}
+
 async function loadCategories() {
     try {
         const response = await fetch(`${API_BASE}/categories`);
@@ -231,6 +259,9 @@ function initGenerateForm() {
             categoria = document.getElementById('nova-categoria').value || null;
         }
 
+        const promptName = document.getElementById('quiz-prompt').value || null;
+        currentPromptName = promptName;
+
         const hasContent = conteudo || file;
         
         if (!hasContent && (categoriaTipo === 'new' || !categoria)) {
@@ -253,6 +284,7 @@ function initGenerateForm() {
                 formData.append('titulo', titulo);
                 formData.append('num_perguntas', numPeruntas);
                 if (categoria) formData.append('categoria', categoria);
+                if (promptName) formData.append('prompt_name', promptName);
                 formData.append('file', file);
                 
                 response = await fetch(`${API_BASE}/generate/file`, {
@@ -267,7 +299,8 @@ function initGenerateForm() {
                         titulo,
                         conteudo,
                         num_perguntas: numPeruntas,
-                        categoria
+                        categoria,
+                        prompt_name: promptName
                     })
                 });
             }
@@ -328,7 +361,8 @@ async function generateQuizWithPart(categoria, titulo, partIndex) {
                 titulo,
                 categoria,
                 part_index: partIndex,
-                num_perguntas: 10
+                num_perguntas: 10,
+                prompt_name: currentPromptName
             })
         });
         

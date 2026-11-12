@@ -142,6 +142,22 @@ class TestQuizAgentMocked:
             agent.generate("conteúdo", num_questions=num)
             mock_agent_instance.run.assert_called_once()
 
+    @patch('app.agents.Agent')
+    def test_generate_substitutes_num_questions_in_prompt(self, mock_agent_class):
+        """O placeholder {num_questions} deve ser substituído antes de enviar ao modelo"""
+        from app.agents import QuizAgent
+
+        mock_agent_instance = MagicMock()
+        mock_agent_instance.run.return_value = MagicMock(content='{"questions": []}')
+        mock_agent_class.return_value = mock_agent_instance
+
+        agent = QuizAgent()
+        agent.generate("conteúdo", num_questions=7)
+
+        sent_prompt = mock_agent_instance.run.call_args[0][0]
+        assert "Gere exatamente 7 questões." in sent_prompt
+        assert "{num_questions}" not in sent_prompt
+
 
 class TestGenerateQuizContentFunction:
     """Testa a função auxiliar generate_quiz_content"""

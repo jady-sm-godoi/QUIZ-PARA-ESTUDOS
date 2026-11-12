@@ -12,6 +12,7 @@ from app.models import (
     QuestionModel,
 )
 from app.database import get_connection, compute_hash
+from app.prompts import DEFAULT_PROMPT, available_prompts
 import uuid
 from datetime import datetime
 
@@ -61,13 +62,38 @@ def get_content_needs_split(content: str) -> bool:
     return len(content) > NEED_SPLIT_THRESHOLD
 
 
+def resolve_prompt_name(prompt_name: Optional[str] = None) -> str:
+    """Valida o nome do prompt recebido e retorna o padrão quando vazio."""
+    name = prompt_name or DEFAULT_PROMPT
+
+    if name not in available_prompts():
+        disponiveis = ", ".join(available_prompts()) or "nenhum"
+        raise HTTPException(
+            status_code=400,
+            detail=f"Prompt inválido: '{name}'. Prompts disponíveis: {disponiveis}"
+        )
+
+    return name
+
+
 router = APIRouter(prefix="/api", tags=["quiz"])
+
+
+@router.get("/prompts")
+async def get_prompts():
+    """Lista os prompts disponíveis e o padrão."""
+    return {
+        "default": DEFAULT_PROMPT,
+        "prompts": available_prompts(),
+    }
 
 
 @router.post("/generate")
 async def generate_quiz(request: QuizGenerateRequest):
     from app.agents import QuizAgent
     from app.models import QuizPartsResponse, ContentPartResponse
+
+    prompt_name = resolve_prompt_name(request.prompt_name)
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -117,7 +143,7 @@ async def generate_quiz(request: QuizGenerateRequest):
     else:
         content_to_use = truncate_content(content_to_use, MAX_CONTENT_CHARS)
 
-    agent = QuizAgent()
+    agent = QuizAgent(prompt_name=prompt_name)
     result = agent.generate(content_to_use, num_questions=request.num_perguntas)
 
     quiz_id = str(uuid.uuid4())
@@ -173,10 +199,13 @@ async def generate_quiz_from_file(
     file: UploadFile = File(...),
     titulo: str = Form(...),
     num_perguntas: int = Form(10),
-    categoria: Optional[str] = Form(None)
+    categoria: Optional[str] = Form(None),
+    prompt_name: Optional[str] = Form(None)
 ):
     from app.agents import QuizAgent
     from app.pdf_utils import extract_text
+
+    prompt_to_use = resolve_prompt_name(prompt_name)
 
     content = await file.read()
     content_text = extract_text(content, file.filename or "")
@@ -219,7 +248,7 @@ async def generate_quiz_from_file(
 
     content_to_use = truncate_content(content_to_use, MAX_CONTENT_CHARS)
 
-    agent = QuizAgent()
+    agent = QuizAgent(prompt_name=prompt_to_use)
     result = agent.generate(content_to_use, num_questions=num_perguntas)
 
     quiz_id = str(uuid.uuid4())
