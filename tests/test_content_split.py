@@ -13,6 +13,7 @@ class TestContentSplitting:
         assert len(parts) == 1
         assert parts[0]["content"] == "Texto curto"
         assert parts[0]["part_index"] == 0
+        assert parts[0]["needs_split"] is False
 
     def test_split_content_large(self):
         """Conteúdo grande deve ser dividido"""
@@ -28,6 +29,7 @@ class TestContentSplitting:
         assert parts[0]["part_index"] == 0
         assert parts[1]["part_index"] == 1
         assert parts[2]["part_index"] == 2
+        assert all(part["needs_split"] is True for part in parts)
 
     def test_split_content_shows_metadata(self):
         """Cada parte deve ter metadados corretos"""
@@ -41,6 +43,7 @@ class TestContentSplitting:
             assert "content" in part
             assert "char_count" in part
             assert "total_parts" in part
+            assert "needs_split" in part
 
     def test_split_content_exact_boundary(self):
         """Conteúdo exatamente no limite não deve ser dividido"""

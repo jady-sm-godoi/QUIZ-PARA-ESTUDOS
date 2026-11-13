@@ -1,7 +1,24 @@
 import pytest
+import tempfile
+import os
 from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.prompts import DEFAULT_PROMPT
+from app.database import init_db, set_test_db
+
+
+@pytest.fixture
+def temp_db():
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        db_path = f.name
+
+    set_test_db(db_path)
+    init_db()
+
+    yield db_path
+
+    set_test_db(None)
+    os.unlink(db_path)
 
 
 @pytest.mark.asyncio
@@ -14,7 +31,7 @@ async def test_root_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_generate_quiz_returns_quiz():
+async def test_generate_quiz_returns_quiz(temp_db):
     """Deve retornar quiz ao gerar (com mock)"""
     from unittest.mock import patch, MagicMock
 

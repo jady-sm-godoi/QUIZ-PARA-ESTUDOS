@@ -37,7 +37,8 @@ def split_content_into_parts(content: str, max_chars: int = MAX_CONTENT_CHARS) -
             "part_index": 0,
             "content": content,
             "char_count": len(content),
-            "total_parts": 1
+            "total_parts": 1,
+            "needs_split": False
         }]
 
     parts = []
@@ -52,7 +53,8 @@ def split_content_into_parts(content: str, max_chars: int = MAX_CONTENT_CHARS) -
             "part_index": i,
             "content": part_content,
             "char_count": len(part_content),
-            "total_parts": total_parts
+            "total_parts": total_parts,
+            "needs_split": True
         })
 
     return parts
@@ -200,7 +202,8 @@ async def generate_quiz_from_file(
     titulo: str = Form(...),
     num_perguntas: int = Form(10),
     categoria: Optional[str] = Form(None),
-    prompt_name: Optional[str] = Form(None)
+    prompt_name: Optional[str] = Form(None),
+    part_index: Optional[int] = Form(None)
 ):
     from app.agents import QuizAgent
     from app.pdf_utils import extract_text
@@ -234,7 +237,7 @@ async def generate_quiz_from_file(
     needs_split = get_content_needs_split(content_to_use)
     parts = split_content_into_parts(content_to_use, MAX_CONTENT_CHARS)
 
-    if needs_split:
+    if needs_split and part_index is None:
         conn.close()
         from app.models import QuizPartsResponse, ContentPartResponse
         return QuizPartsResponse(
@@ -246,7 +249,16 @@ async def generate_quiz_from_file(
                    f"Escolha part_index de 0 a {len(parts)-1} para gerar o quiz de uma parte específica."
         )
 
-    content_to_use = truncate_content(content_to_use, MAX_CONTENT_CHARS)
+    if part_index is not None:
+        if part_index < 0 or part_index >= len(parts):
+            conn.close()
+            raise HTTPException(
+                status_code=400,
+                detail=f"part_index inválido. Use valores entre 0 e {len(parts)-1}"
+            )
+        content_to_use = parts[part_index]["content"]
+    else:
+        content_to_use = truncate_content(content_to_use, MAX_CONTENT_CHARS)
 
     agent = QuizAgent(prompt_name=prompt_to_use)
     result = agent.generate(content_to_use, num_questions=num_perguntas)

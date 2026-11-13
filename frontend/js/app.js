@@ -4,6 +4,7 @@ let currentQuiz = null;
 let currentQuizId = null;
 let userAnswers = {};
 let currentPromptName = null;
+let pendingQuizSource = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
@@ -188,15 +189,39 @@ function hideLoading() {
     document.getElementById('loading-modal').classList.add('hidden');
 }
 
+async function parseApiResponse(response) {
+    const text = await response.text();
+    let data = null;
+
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch (error) {
+            data = null;
+        }
+    }
+
+    if (!response.ok) {
+        const detail = data && data.detail
+            ? data.detail
+            : `Erro ${response.status}: ${text || response.statusText}`;
+        throw new Error(detail);
+    }
+
+    if (data === null) {
+        throw new Error('Resposta inválida do servidor');
+    }
+
+    return data;
+}
+
 async function loadPrompts() {
     const select = document.getElementById('quiz-prompt');
     if (!select) return;
 
     try {
         const response = await fetch(`${API_BASE}/prompts`);
-        if (!response.ok) throw new Error('Erro ao carregar prompts');
-
-        const data = await response.json();
+        const data = await parseApiResponse(response);
         const prompts = data.prompts || [];
 
         select.innerHTML = '';
@@ -217,7 +242,7 @@ async function loadPrompts() {
 async function loadCategories() {
     try {
         const response = await fetch(`${API_BASE}/categories`);
-        const categories = await response.json();
+        const categories = await parseApiResponse(response);
         
         const selects = [
             document.getElementById('quiz-categoria'),
@@ -273,13 +298,18 @@ function initGenerateForm() {
             const useExisting = confirm('Nenhum conteúdo novo adicionado. Deseja usar o material existente da categoria "' + categoria + '" para gerar o quiz?');
             if (!useExisting) return;
         }
+
+        const usingFile = !!(file && !conteudo);
+        pendingQuizSource = usingFile
+            ? { type: 'file', file, categoria, titulo, numPeruntas }
+            : { type: 'text', conteudo, categoria, titulo, numPeruntas };
         
         showLoading('Gerando quiz...');
         
         try {
             let response;
             
-            if (file && !conteudo) {
+            if (usingFile) {
                 const formData = new FormData();
                 formData.append('titulo', titulo);
                 formData.append('num_perguntas', numPeruntas);
@@ -305,12 +335,7 @@ function initGenerateForm() {
                 });
             }
             
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Erro ao gerar quiz');
-            }
-            
-            const data = await response.json();
+            const data = await parseApiResponse(response);
             
             if (data.total_parts) {
                 showPartsModal(data);
@@ -336,7 +361,7 @@ function showPartsModal(data) {
         const btn = document.createElement('button');
         btn.className = 'part-item';
         btn.textContent = `Parte ${part.part_index + 1} (${part.char_count} caracteres)`;
-        btn.addEventListener('click', () => generateQuizWithPart(data.categoria, data.titulo, part.part_index));
+        btn.addEventListener('click', () => generateQuizWithPart(part.part_index));
         partsList.appendChild(btn);
     });
     
@@ -349,24 +374,47 @@ function initPartsModal() {
     });
 }
 
-async function generateQuizWithPart(categoria, titulo, partIndex) {
+async function generateQuizWithPart(partIndex) {
     document.getElementById('parts-modal').classList.add('hidden');
     showLoading('Gerando quiz...');
     
     try {
-        const response = await fetch(`${API_BASE}/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                titulo,
-                categoria,
-                part_index: partIndex,
-                num_perguntas: 10,
-                prompt_name: currentPromptName
-            })
-        });
+        const source = pendingQuizSource;
+        if (!source) {
+            throw new Error('Material não encontrado. Gere o quiz novamente.');
+        }
+
+        let response;
+
+        if (source.type === 'file') {
+            const formData = new FormData();
+            formData.append('titulo', source.titulo);
+            formData.append('num_perguntas', source.numPeruntas);
+            if (source.categoria) formData.append('categoria', source.categoria);
+            if (currentPromptName) formData.append('prompt_name', currentPromptName);
+            formData.append('part_index', partIndex);
+            formData.append('file', source.file);
+
+            response = await fetch(`${API_BASE}/generate/file`, {
+                method: 'POST',
+                body: formData
+            });
+        } else {
+            response = await fetch(`${API_BASE}/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    titulo: source.titulo,
+                    conteudo: source.conteudo,
+                    categoria: source.categoria,
+                    part_index: partIndex,
+                    num_perguntas: source.numPeruntas,
+                    prompt_name: currentPromptName
+                })
+            });
+        }
         
-        const data = await response.json();
+        const data = await parseApiResponse(response);
         displayQuiz(data);
     } catch (error) {
         alert('Erro: ' + error.message);
@@ -439,7 +487,7 @@ function initSubmitQuiz() {
                 body: JSON.stringify({ respostas })
             });
             
-            const result = await response.json();
+            const result = await parseApiResponse(response);
             displayResult(result);
         } catch (error) {
             alert('Erro: ' + error.message);
@@ -537,7 +585,7 @@ function initUploadForm() {
                 body: formData
             });
             
-            const data = await response.json();
+            const data = await parseApiResponse(response);
             
             const resultDiv = document.getElementById('upload-result');
             
@@ -566,7 +614,7 @@ async function loadHistory() {
     
     try {
         const response = await fetch(`${API_BASE}/history`);
-        const history = await response.json();
+        const history = await parseApiResponse(response);
         
         const container = document.getElementById('history-container');
         
@@ -608,7 +656,7 @@ async function viewQuiz(quizId) {
     
     try {
         const response = await fetch(`${API_BASE}/quiz/${quizId}`);
-        const quiz = await response.json();
+        const quiz = await parseApiResponse(response);
         
         displayQuiz(quiz);
     } catch (error) {

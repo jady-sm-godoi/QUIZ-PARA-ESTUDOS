@@ -407,6 +407,10 @@ Se a porta 8000 estiver em uso:
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
 ```
 
+### Material grande dividido em partes
+
+Materiais acima de 60.000 caracteres são divididos em partes de 50.000. O modal mostra as partes disponíveis; escolher uma gera um quiz apenas daquele trecho. O fluxo funciona tanto para texto colado quanto para upload de arquivo.
+
 ### Testes falhando
 
 Certifique-se de que o ambiente virtual está ativado:

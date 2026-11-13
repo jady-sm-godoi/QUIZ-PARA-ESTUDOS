@@ -276,3 +276,116 @@ async def test_generate_file_uses_selected_prompt(temp_db):
 
         assert response.status_code == 200
         mock_agent_class.assert_called_once_with(prompt_name=DEFAULT_PROMPT)
+
+
+@pytest.mark.asyncio
+async def test_generate_large_content_returns_parts(temp_db):
+    """Conteúdo acima de 60k deve retornar as partes sem chamar a IA."""
+    content = "A" * 70000
+
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post("/api/generate", json={
+                "titulo": "Material Grande",
+                "conteudo": content,
+                "num_perguntas": 10
+            })
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total_parts"] == 2
+        assert len(data["parts"]) == 2
+        assert all(part["needs_split"] is True for part in data["parts"])
+        assert data["parts"][0]["part_index"] == 0
+        assert data["parts"][1]["char_count"] == 20000
+        mock_agent_class.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_generate_large_content_with_part_index(temp_db):
+    """part_index deve gerar o quiz apenas da parte escolhida."""
+    content = "A" * 70000
+    mock_questions = {"questions": []}
+
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        mock_agent = MagicMock()
+        mock_agent.generate.return_value = mock_questions
+        mock_agent_class.return_value = mock_agent
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post("/api/generate", json={
+                "titulo": "Material Grande - Parte 2",
+                "conteudo": content,
+                "num_perguntas": 1,
+                "part_index": 1
+            })
+
+        assert response.status_code == 200
+        sent_content = mock_agent.generate.call_args[0][0]
+        assert sent_content == "A" * 20000
+
+
+@pytest.mark.asyncio
+async def test_generate_large_file_returns_parts(temp_db):
+    """Arquivo grande deve retornar as partes sem chamar a IA."""
+    content = b"A" * 70000
+
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post(
+                "/api/generate/file",
+                files={"file": ("grande.txt", content, "text/plain")},
+                data={"titulo": "Arquivo Grande", "num_perguntas": "10"}
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total_parts"] == 2
+        assert all(part["needs_split"] is True for part in data["parts"])
+        mock_agent_class.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_generate_large_file_with_part_index(temp_db):
+    """part_index na rota de arquivo deve gerar o quiz da parte escolhida."""
+    content = b"A" * 70000
+    mock_questions = {"questions": []}
+
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        mock_agent = MagicMock()
+        mock_agent.generate.return_value = mock_questions
+        mock_agent_class.return_value = mock_agent
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post(
+                "/api/generate/file",
+                files={"file": ("grande.txt", content, "text/plain")},
+                data={
+                    "titulo": "Arquivo Grande - Parte 2",
+                    "num_perguntas": "1",
+                    "part_index": "1"
+                }
+            )
+
+        assert response.status_code == 200
+        sent_content = mock_agent.generate.call_args[0][0]
+        assert sent_content == "A" * 20000
+
+
+@pytest.mark.asyncio
+async def test_generate_part_index_out_of_range(temp_db):
+    """part_index inválido deve retornar 400."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post("/api/generate", json={
+            "titulo": "Parte Inválida",
+            "conteudo": "A" * 70000,
+            "num_perguntas": 1,
+            "part_index": 5
+        })
+
+    assert response.status_code == 400

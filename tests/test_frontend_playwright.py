@@ -79,6 +79,54 @@ class TestFrontendPage:
         )
         assert prompt_select.input_value() != ""
 
+    def test_large_content_flow_reuses_content_for_selected_part(self, page, server):
+        """Ao escolher uma parte, o conteúdo original deve ser reenviado"""
+        requests = []
+
+        def handle_generate(route):
+            payload = route.request.post_data_json
+            requests.append(payload)
+
+            if payload.get("part_index") is None:
+                route.fulfill(json={
+                    "titulo": payload["titulo"],
+                    "categoria": payload.get("categoria"),
+                    "total_parts": 2,
+                    "parts": [
+                        {"part_index": 0, "char_count": 50000, "total_parts": 2, "needs_split": True},
+                        {"part_index": 1, "char_count": 20000, "total_parts": 2, "needs_split": True},
+                    ],
+                    "message": "Material dividido em 2 partes."
+                })
+            else:
+                route.fulfill(json={
+                    "quiz_id": "quiz-parte-2",
+                    "titulo": payload["titulo"],
+                    "perguntas": [
+                        {
+                            "enunciado": "Pergunta da parte 2?",
+                            "opcoes": ["A", "B", "C", "D", "E"],
+                            "resposta_correta": 0,
+                            "explicacao": "Explicação"
+                        }
+                    ]
+                })
+
+        page.route("**/api/generate", handle_generate)
+        page.goto(f"{server}/")
+
+        page.fill("#quiz-titulo", "Material Grande")
+        page.fill("#quiz-conteudo", "conteudo original")
+        page.click("#form-generate button[type='submit']")
+
+        page.wait_for_selector("#parts-modal:not(.hidden)")
+        page.locator("#parts-list .part-item").nth(1).click()
+        page.wait_for_selector("#section-quiz.active")
+
+        assert len(requests) == 2
+        assert requests[1]["part_index"] == 1
+        assert requests[1]["conteudo"] == "conteudo original"
+
     def test_category_radio_buttons(self, page, server):
         """Testa botões de categoria existente/nova"""
         page.goto(f"{server}/")
