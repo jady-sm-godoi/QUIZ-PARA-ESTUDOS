@@ -8,6 +8,9 @@ from app.prompts import DEFAULT_PROMPT, load_prompt
 
 MODEL_ID = "gpt-4o-mini"
 
+MATERIAL_OPEN_TAG = "<material_de_estudo>"
+MATERIAL_CLOSE_TAG = "</material_de_estudo>"
+
 # Compatibilidade: carregado no import. O QuizAgent recarrega o arquivo a cada
 # instância, então edições nos prompts valem no próximo quiz.
 QUIZ_SYSTEM_PROMPT = load_prompt()
@@ -25,10 +28,11 @@ def get_api_key() -> str:
     return api_key
 
 
-def create_quiz_agent(model_id: str = MODEL_ID) -> Agent:
+def create_quiz_agent(model_id: str = MODEL_ID, system_prompt: str = "") -> Agent:
     api_key = get_api_key()
     return Agent(
         model=OpenAIChat(id=model_id, api_key=api_key),
+        system_message=system_prompt or None,
         markdown=False,
     )
 
@@ -37,13 +41,20 @@ class QuizAgent:
     def __init__(self, model_id: str = MODEL_ID, prompt_name: str = DEFAULT_PROMPT):
         self.model_id = model_id
         self.system_prompt = load_prompt(prompt_name)
-        self.agent = create_quiz_agent(model_id)
+        self.agent = create_quiz_agent(model_id, self.system_prompt)
+
+    def _build_system_prompt(self, num_questions: int) -> str:
+        return self.system_prompt.replace("{num_questions}", str(num_questions))
+
+    def _build_material_message(self, content: str) -> str:
+        return f"{MATERIAL_OPEN_TAG}\n{content}\n{MATERIAL_CLOSE_TAG}"
 
     def generate(self, content: str, num_questions: int = 10) -> dict:
-        prompt = self.system_prompt.replace("{num_questions}", str(num_questions))
-        prompt += f"\n\nCONTEÚDO:\n{content}"
+        system_prompt = self._build_system_prompt(num_questions)
+        # Recria o Agent para aplicar a quantidade de questões ao system message.
+        self.agent = create_quiz_agent(self.model_id, system_prompt)
 
-        response = self.agent.run(prompt)
+        response = self.agent.run(self._build_material_message(content))
 
         try:
             text = response.content.strip()
@@ -106,23 +117,6 @@ def generate_quiz_content(content: str, num_questions: int = 10) -> dict:
 
 
 def generate_quiz_with_category(content: str, category: str, num_questions: int = 10) -> dict:
-    prompt = load_prompt().replace("{num_questions}", str(num_questions))
-    prompt += f"\n\nCATEGORIA: {category}"
-    prompt += f"\n\nCONTEÚDO:\n{content}"
-
-    agent = create_quiz_agent()
-    response = agent.run(prompt)
-
-    try:
-        text = response.content.strip()
-        if text.startswith("```json"):
-            text = text[7:]
-        if text.startswith("```"):
-            text = text[3:]
-        if text.endswith("```"):
-            text = text[:-3]
-
-        result = json.loads(text.strip())
-        return result
-    except json.JSONDecodeError:
-        return {"questions": []}
+    agent = QuizAgent()
+    material = f"CATEGORIA: {category}\n\n{content}"
+    return agent.generate(material, num_questions)

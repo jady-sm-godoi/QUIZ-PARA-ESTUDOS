@@ -1,7 +1,7 @@
 import pytest
 
 import app.prompts as prompts_module
-from app.prompts import DEFAULT_PROMPT, available_prompts, load_prompt
+from app.prompts import BASE_PROMPT, DEFAULT_PROMPT, available_prompts, load_prompt
 
 
 class TestPromptLoader:
@@ -72,3 +72,40 @@ class TestPromptLoader:
     def test_all_available_prompts_load(self, name):
         """Todos os prompts da pasta devem carregar sem erro."""
         assert load_prompt(name)
+
+
+class TestBasePromptPolicy:
+
+    def test_base_prompt_exists(self):
+        """A política de fontes compartilhada deve existir na pasta."""
+        assert (prompts_module.PROMPTS_DIR / f"{BASE_PROMPT}.md").exists()
+
+    def test_base_prompt_is_not_listed_as_banca(self):
+        """O _base.md não deve aparecer no seletor de prompts."""
+        assert BASE_PROMPT not in available_prompts()
+
+    def test_base_prompt_cannot_be_loaded_as_banca(self):
+        """O _base.md é um trecho compartilhado, não uma banca selecionável."""
+        with pytest.raises(FileNotFoundError):
+            load_prompt(BASE_PROMPT)
+
+    def test_load_prompt_includes_source_policy(self):
+        """Todo prompt de banca deve vir precedido da política de fontes."""
+        prompt = load_prompt()
+
+        assert "POLÍTICA DE FONTES E ORIGINALIDADE" in prompt
+        assert "CONTEÚDO-FONTE" in prompt
+        assert "CONTEÚDO-QUESTÃO" in prompt
+        assert "<material_de_estudo>" in prompt
+
+    def test_base_prompt_is_prepended_in_custom_dir(self, tmp_path, monkeypatch):
+        """A política deve ser prefixada mesmo em pastas de teste."""
+        (tmp_path / f"{BASE_PROMPT}.md").write_text("BASE GENÉRICA", encoding="utf-8")
+        (tmp_path / "fgv.md").write_text("Prompt FGV", encoding="utf-8")
+        monkeypatch.setattr(prompts_module, "PROMPTS_DIR", tmp_path)
+
+        prompt = load_prompt("fgv")
+
+        assert prompt.startswith("BASE GENÉRICA")
+        assert "Prompt FGV" in prompt
+        assert BASE_PROMPT not in available_prompts()

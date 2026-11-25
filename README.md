@@ -127,8 +127,9 @@ O SQLite criará automaticamente o banco de dados `quiz.db` na pasta `backend/` 
 
 ### 3. Editando o prompt
 
-Os prompts enviados ao modelo ficam em `backend/app/prompts/`. O arquivo `FGV-TI.md` é o padrão; qualquer outro `.md` na pasta (como `Cesgranrio.md`) aparece automaticamente no select "Banca / Estilo do prompt" do formulário.
+Os prompts enviados ao modelo ficam em `backend/app/prompts/`. O arquivo `FGV-TI.md` é o padrão; qualquer outro `.md` na pasta (como `Cesgranrio.md`) aparece automaticamente no select "Banca / Estilo do prompt" do formulário, exceto arquivos que começam com `_` (como `_base.md`).
 
+- O arquivo `_base.md` contém a Política de Fontes e Originalidade, aplicada automaticamente a todos os prompts. Ele não aparece no seletor de bancas.
 - Mantenha o placeholder `{num_questions}` onde a quantidade de perguntas deve aparecer.
 - Mantenha o `\n` como texto (barra invertida + n) dentro do exemplo de JSON.
 - Inclua `comentarios_opcoes` no JSON, com uma justificativa curta para cada alternativa, na mesma ordem de `opcoes`. Quizzes antigos sem esse campo continuam usando `explicacao` como fallback.
@@ -176,7 +177,7 @@ http://localhost:8000
 
 ## Testes
 
-### Executando testes do backend (72 testes)
+### Executando testes do backend (106 testes)
 
 ```bash
 # Ative o ambiente virtual
@@ -186,7 +187,7 @@ source venv/bin/activate
 pytest tests/ --ignore=tests/test_frontend_playwright.py -v
 ```
 
-### Executando testes do frontend (12 testes)
+### Executando testes do frontend (15 testes)
 
 ```bash
 # Ative o ambiente virtual
@@ -198,11 +199,15 @@ pytest tests/test_frontend_playwright.py -v
 
 ### Executando todos os testes
 
+A suíte tem **121 testes** no total: 106 de backend e 15 de frontend.
+
 ```bash
 # Execute todos os testes separadamente (recomendado)
 pytest tests/ --ignore=tests/test_frontend_playwright.py -v
 pytest tests/test_frontend_playwright.py -v
 ```
+
+> **Importante:** execute os dois grupos em processos separados. O Playwright mantém um event loop ativo; rodar tudo com um único `pytest` pode falhar com `RuntimeError: This event loop is already running`.
 
 ### Verbosidade dos testes
 
@@ -274,6 +279,7 @@ quiz-para-estudos/
 │   │   ├── agents.py            # Agno Agent (GPT-4o-mini)
 │   │   ├── prompts/
 │   │   │   ├── __init__.py      # Carregamento dos prompts (.md)
+│   │   │   ├── _base.md         # Política de fontes compartilhada
 │   │   │   ├── Cesgranrio.md    # Prompt estilo Cesgranrio
 │   │   │   └── FGV-TI.md        # Prompt estilo FGV (padrão)
 │   │   ├── pdf_utils.py         # Extração de texto (PDF/DOCX)
@@ -350,7 +356,7 @@ quiz-para-estudos/
 - [x] Truncagem de conteúdo para evitar limite de tokens (50.000 chars)
 - [x] Cache de materiais por hash MD5
 - [x] Divisão de conteúdo grande em partes
-- [x] Cada quiz é único (não reutiliza perguntas)
+- [x] Cada quiz é gerado em uma nova chamada ao modelo, sem reutilização automática de questões anteriores
 
 ---
 
@@ -415,11 +421,14 @@ Materiais acima de 60.000 caracteres são divididos em partes de 50.000. O modal
 
 ### Testes falhando
 
-Certifique-se de que o ambiente virtual está ativado:
+Certifique-se de que o ambiente virtual está ativado e execute backend e frontend em processos separados:
 ```bash
 source venv/bin/activate
 pytest tests/ --ignore=tests/test_frontend_playwright.py -v
+pytest tests/test_frontend_playwright.py -v
 ```
+
+Se aparecer `RuntimeError: This event loop is already running`, você rodou os dois grupos no mesmo processo do `pytest`. Use os comandos separados acima.
 
 ### Banco de dados corrompido
 

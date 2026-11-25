@@ -143,8 +143,8 @@ class TestQuizAgentMocked:
             mock_agent_instance.run.assert_called_once()
 
     @patch('app.agents.Agent')
-    def test_generate_substitutes_num_questions_in_prompt(self, mock_agent_class):
-        """O placeholder {num_questions} deve ser substituído antes de enviar ao modelo"""
+    def test_generate_substitutes_num_questions_in_system_prompt(self, mock_agent_class):
+        """O placeholder {num_questions} deve ser substituído no system message"""
         from app.agents import QuizAgent
 
         mock_agent_instance = MagicMock()
@@ -154,9 +154,40 @@ class TestQuizAgentMocked:
         agent = QuizAgent()
         agent.generate("conteúdo", num_questions=7)
 
-        sent_prompt = mock_agent_instance.run.call_args[0][0]
-        assert "Gere exatamente 7 questões." in sent_prompt
-        assert "{num_questions}" not in sent_prompt
+        system_prompt = mock_agent_class.call_args.kwargs["system_message"]
+        assert "Gere exatamente 7 questões." in system_prompt
+        assert "{num_questions}" not in system_prompt
+
+    @patch('app.agents.Agent')
+    def test_generate_sends_content_as_user_message(self, mock_agent_class):
+        """O material deve ir no user message, separado das regras do sistema"""
+        from app.agents import QuizAgent
+
+        mock_agent_instance = MagicMock()
+        mock_agent_instance.run.return_value = MagicMock(content='{"questions": []}')
+        mock_agent_class.return_value = mock_agent_instance
+
+        agent = QuizAgent()
+        agent.generate("conteúdo sigiloso", num_questions=7)
+
+        system_prompt = mock_agent_class.call_args.kwargs["system_message"]
+        user_message = mock_agent_instance.run.call_args[0][0]
+
+        assert "<material_de_estudo>" in user_message
+        assert "</material_de_estudo>" in user_message
+        assert "conteúdo sigiloso" in user_message
+        assert "conteúdo sigiloso" not in system_prompt
+        assert "POLÍTICA DE FONTES E ORIGINALIDADE" in system_prompt
+        assert "Gere exatamente 7 questões." not in user_message
+
+    @patch('app.agents.Agent')
+    def test_create_quiz_agent_passes_system_message(self, mock_agent_class):
+        """create_quiz_agent deve encaminhar o prompt como system_message"""
+        from app.agents import create_quiz_agent
+
+        create_quiz_agent(system_prompt="Regras da banca")
+
+        assert mock_agent_class.call_args.kwargs["system_message"] == "Regras da banca"
 
 
 class TestGenerateQuizContentFunction:

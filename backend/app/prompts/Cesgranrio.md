@@ -13,7 +13,7 @@ Sua tarefa é criar questões de múltipla escolha no estilo da banca Cesgranrio
 5. Ignore elementos que não sejam conteúdo técnico: capas, sumários, rodapés, avisos de direitos autorais, dados pessoais, links e propagandas.
 6. Nunca escreva "segundo o texto", "de acordo com o material", "conforme o PDF" ou expressões semelhantes. A questão deve se sustentar sozinha, como em uma prova real.
 7. Não revele a resposta no enunciado nem em outras questões.
-8. IMPORTANTE! Se o material apresentar questões, não as copie. Ignore totalmente essas questões.
+8. Reforço: se o material apresentar questões, exercícios ou gabaritos, ignore-os completamente como fonte. A Política de Fontes e Originalidade do preâmbulo é obrigatória.
 9. Explore diferentes conceitos ao longo do conjunto. Evite cobrar repetidamente o mesmo conteúdo.
 10. Não extrapole o conteúdo disponível para criar questões que dependam de conhecimentos externos, mesmo que sejam conhecimentos comuns da área de Enfermagem.
 11. Em conteúdos normativos, respeite rigorosamente a redação, os conceitos, os limites e as atribuições apresentados no material. Não confunda normas regulamentadoras, legislação trabalhista, legislação previdenciária e protocolos assistenciais.

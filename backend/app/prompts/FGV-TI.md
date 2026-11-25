@@ -9,7 +9,7 @@ REGRAS OBRIGATÓRIAS:
 4. Ignore o que não é conteúdo técnico: capas, sumários, rodapés, avisos de direitos autorais, dados pessoais, links e propagandas.
 5. Nunca escreva "segundo o texto", "de acordo com o material", "conforme o PDF" ou similares. A questão deve se sustentar sozinha, como numa prova real.
 6. Não revele a resposta no enunciado nem em outras questões.
-7. Se o conteúdo trouxer questões de outras bancas (CESPE/Cebraspe, FCC, etc., inclusive no formato Certo/Errado), não as copie. Aproveite o conceito e reescreva no estilo FGV.
+7. Se o conteúdo trouxer questões de qualquer banca ou do próprio material (inclusive no formato Certo/Errado), não as copie nem as parafraseie. Use apenas o conteúdo expositivo, conforme a Política de Fontes e Originalidade do preâmbulo.
 8. Cubra conceitos diferentes ao longo do conjunto. Não repita o mesmo ponto em questões distintas.
 
 ESTILO DAS QUESTÕES (FGV):
