@@ -389,3 +389,50 @@ async def test_generate_part_index_out_of_range(temp_db):
         })
 
     assert response.status_code == 400
+
+
+def test_normalize_option_comments():
+    """Os comentários devem sempre ter o mesmo tamanho das opções."""
+    from app.routes import normalize_option_comments
+
+    assert normalize_option_comments(["a", "b"], 4) == ["a", "b", "", ""]
+    assert normalize_option_comments({"A": "a", "C": "c"}, 3) == ["a", "", "c"]
+    assert normalize_option_comments(None, 2) == ["", ""]
+    assert normalize_option_comments(["a", "b", "c"], 2) == ["a", "b"]
+
+
+@pytest.mark.asyncio
+async def test_generate_saves_and_returns_option_comments(temp_db):
+    """Os comentários por alternativa devem ser salvos e devolvidos pela API."""
+    comments = ["A errada", "B correta", "C errada", "D errada", "E errada"]
+    mock_questions = {
+        "questions": [
+            {
+                "enunciado": "P?",
+                "opcoes": ["A", "B", "C", "D", "E"],
+                "resposta_correta": 1,
+                "explicacao": "Resumo",
+                "comentarios_opcoes": comments
+            }
+        ]
+    }
+
+    with patch('app.agents.QuizAgent') as mock_agent_class:
+        mock_agent = MagicMock()
+        mock_agent.generate.return_value = mock_questions
+        mock_agent_class.return_value = mock_agent
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post("/api/generate", json={
+                "titulo": "Teste Comentários",
+                "conteudo": "Conteúdo"
+            })
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["perguntas"][0]["comentarios_opcoes"] == comments
+
+            get_response = await client.get(f"/api/quiz/{data['quiz_id']}")
+            assert get_response.status_code == 200
+            assert get_response.json()["perguntas"][0]["comentarios_opcoes"] == comments

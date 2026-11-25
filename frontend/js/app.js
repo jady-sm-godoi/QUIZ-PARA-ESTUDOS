@@ -215,6 +215,16 @@ async function parseApiResponse(response) {
     return data;
 }
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
 async function loadPrompts() {
     const select = document.getElementById('quiz-prompt');
     if (!select) return;
@@ -499,7 +509,8 @@ function initSubmitQuiz() {
 
 function displayResult(result) {
     const container = document.getElementById('result-container');
-    const percentage = Math.round((result.acertos / result.total) * 100);
+    const total = result.total || currentQuiz.perguntas.length;
+    const percentage = total > 0 ? Math.round((result.acertos / total) * 100) : 0;
     
     let emoji = '';
     if (percentage >= 80) emoji = '🎉';
@@ -508,7 +519,7 @@ function displayResult(result) {
     
     container.innerHTML = `
         <div class="result-header">
-            <div class="result-score">${result.acertos}/${result.total}</div>
+            <div class="result-score">${result.acertos}/${total}</div>
             <div class="result-label">${percentage}% ${emoji}</div>
         </div>
     `;
@@ -517,19 +528,64 @@ function displayResult(result) {
     reviewContainer.innerHTML = '<h3>Revisão das Respostas</h3>';
     
     currentQuiz.perguntas.forEach((pergunta, index) => {
+        const opcoes = pergunta.opcoes || [];
         const userAnswer = userAnswers[index];
-        const isCorrect = userAnswer === pergunta.resposta_correta;
-        
+        const answered = userAnswer !== undefined && userAnswer !== null;
+        const isCorrect = answered && userAnswer === pergunta.resposta_correta;
+        const correctAnswerText = opcoes[pergunta.resposta_correta] ?? '';
+        const userAnswerText = answered
+            ? (opcoes[userAnswer] ?? 'Resposta inválida')
+            : 'Não respondida';
+
+        let feedback;
+        if (!answered) {
+            feedback = `Você não respondeu esta questão. A resposta correta é: <strong>${escapeHtml(correctAnswerText)}</strong>.`;
+        } else if (isCorrect) {
+            feedback = '✓ Você acertou esta questão.';
+        } else {
+            feedback = `✗ Você errou. A resposta correta é: <strong>${escapeHtml(correctAnswerText)}</strong>.`;
+        }
+
+        const optionsHtml = opcoes.map((opcao, opIndex) => {
+            const isCorrectOption = opIndex === pergunta.resposta_correta;
+            const isUserOption = answered && opIndex === userAnswer;
+            const classes = ['review-option'];
+
+            if (isCorrectOption) classes.push('correct');
+            if (isUserOption && !isCorrectOption) classes.push('wrong');
+            if (isUserOption) classes.push('selected');
+
+            const letter = String.fromCharCode(65 + opIndex);
+            const comment = (pergunta.comentarios_opcoes || [])[opIndex] || '';
+            const tags = [
+                isUserOption ? '<span class="option-tag">sua resposta</span>' : '',
+                isCorrectOption ? '<span class="option-tag correct-tag">correta</span>' : ''
+            ].join('');
+
+            return `
+                <li class="${classes.join(' ')}">
+                    <div class="review-option-header">
+                        <span class="option-letter">${letter}</span>
+                        <span class="option-text">${escapeHtml(opcao)}</span>
+                        ${tags}
+                    </div>
+                    ${comment ? `<div class="option-comment">${escapeHtml(comment)}</div>` : ''}
+                </li>
+            `;
+        }).join('');
+
+        const generalExplanation = pergunta.explicacao
+            ? `<div class="explanation"><strong>Comentário geral:</strong> ${escapeHtml(pergunta.explicacao)}</div>`
+            : '';
+
         const item = document.createElement('div');
         item.className = `review-item ${isCorrect ? 'correct' : 'wrong'}`;
-        
         item.innerHTML = `
-            <div class="enunciado"><strong>Pergunta ${index + 1}:</strong> ${pergunta.enunciado}</div>
-            <div>Sua resposta: ${userAnswer !== undefined ? pergunta.opcoes[userAnswer] : 'Não respondida'}</div>
-            <div class="${isCorrect ? 'result-correct' : 'result-wrong'}">
-                ${isCorrect ? '✓ Correta' : `✗ Correta: ${pergunta.opcoes[pergunta.resposta_correta]}`}
-            </div>
-            ${pergunta.explicacao ? `<div class="explanation">${pergunta.explicacao}</div>` : ''}
+            <div class="enunciado"><strong>Pergunta ${index + 1}:</strong> ${escapeHtml(pergunta.enunciado)}</div>
+            <div class="review-answer">Sua resposta: <strong>${escapeHtml(userAnswerText)}</strong></div>
+            <div class="review-feedback ${isCorrect ? 'result-correct' : 'result-wrong'}">${feedback}</div>
+            <ul class="review-options">${optionsHtml}</ul>
+            ${generalExplanation}
         `;
         
         reviewContainer.appendChild(item);

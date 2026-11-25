@@ -78,6 +78,69 @@ def resolve_prompt_name(prompt_name: Optional[str] = None) -> str:
     return name
 
 
+def normalize_option_comments(raw_comments, options_count: int) -> List[str]:
+    """Garante uma lista de comentários com o mesmo tamanho das opções."""
+    if isinstance(raw_comments, dict):
+        raw_comments = [
+            raw_comments.get(chr(65 + i), raw_comments.get(str(i), ""))
+            for i in range(options_count)
+        ]
+    elif not isinstance(raw_comments, list):
+        raw_comments = []
+
+    comments = []
+    for comment in raw_comments[:options_count]:
+        comments.append(str(comment).strip() if comment is not None else "")
+
+    comments.extend([""] * (options_count - len(comments)))
+    return comments
+
+
+def parse_option_comments(raw_comments: Optional[str], options_count: int) -> List[str]:
+    try:
+        data = json.loads(raw_comments or "[]")
+    except (TypeError, json.JSONDecodeError):
+        data = []
+
+    return normalize_option_comments(data, options_count)
+
+
+def save_questions(cursor, quiz_id: str, result: dict) -> List[QuestionModel]:
+    """Salva as questões e devolve os modelos com os comentários normalizados."""
+    perguntas = []
+
+    for q in result.get("questions", []):
+        opcoes = q["opcoes"]
+        comentarios = normalize_option_comments(
+            q.get("comentarios_opcoes"), len(opcoes)
+        )
+
+        cursor.execute("""
+            INSERT INTO questions (
+                quiz_id, enunciado, opcoes, resposta_correta,
+                explicacao, comentarios_opcoes
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            quiz_id,
+            q["enunciado"],
+            json.dumps(opcoes),
+            q["resposta_correta"],
+            q.get("explicacao", ""),
+            json.dumps(comentarios)
+        ))
+
+        perguntas.append(QuestionModel(
+            enunciado=q["enunciado"],
+            opcoes=opcoes,
+            resposta_correta=q["resposta_correta"],
+            explicacao=q.get("explicacao", ""),
+            comentarios_opcoes=comentarios
+        ))
+
+    return perguntas
+
+
 router = APIRouter(prefix="/api", tags=["quiz"])
 
 
@@ -156,25 +219,7 @@ async def generate_quiz(request: QuizGenerateRequest):
         VALUES (?, ?, ?, ?)
     """, (quiz_id, request.titulo, material_hash, datetime.now().isoformat()))
 
-    perguntas = []
-    for i, q in enumerate(result.get("questions", [])):
-        cursor.execute("""
-            INSERT INTO questions (quiz_id, enunciado, opcoes, resposta_correta, explicacao)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            quiz_id,
-            q["enunciado"],
-            json.dumps(q["opcoes"]),
-            q["resposta_correta"],
-            q.get("explicacao", "")
-        ))
-
-        perguntas.append(QuestionModel(
-            enunciado=q["enunciado"],
-            opcoes=q["opcoes"],
-            resposta_correta=q["resposta_correta"],
-            explicacao=q.get("explicacao", "")
-        ))
+    perguntas = save_questions(cursor, quiz_id, result)
 
     conn.commit()
 
@@ -271,25 +316,7 @@ async def generate_quiz_from_file(
         VALUES (?, ?, ?, ?)
     """, (quiz_id, titulo, material_hash, datetime.now().isoformat()))
 
-    perguntas = []
-    for i, q in enumerate(result.get("questions", [])):
-        cursor.execute("""
-            INSERT INTO questions (quiz_id, enunciado, opcoes, resposta_correta, explicacao)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            quiz_id,
-            q["enunciado"],
-            json.dumps(q["opcoes"]),
-            q["resposta_correta"],
-            q.get("explicacao", "")
-        ))
-
-        perguntas.append(QuestionModel(
-            enunciado=q["enunciado"],
-            opcoes=q["opcoes"],
-            resposta_correta=q["resposta_correta"],
-            explicacao=q.get("explicacao", "")
-        ))
+    perguntas = save_questions(cursor, quiz_id, result)
 
     conn.commit()
 
@@ -328,7 +355,7 @@ async def get_quiz(quiz_id: str):
         raise HTTPException(status_code=404, detail="Quiz não encontrado")
 
     cursor.execute("""
-        SELECT id, enunciado, opcoes, resposta_correta, explicacao
+        SELECT id, enunciado, opcoes, resposta_correta, explicacao, comentarios_opcoes
         FROM questions WHERE quiz_id = ?
     """, (quiz_id,))
     questions = cursor.fetchall()
@@ -348,7 +375,10 @@ async def get_quiz(quiz_id: str):
             "enunciado": q["enunciado"],
             "opcoes": opcoes,
             "resposta_correta": q["resposta_correta"],
-            "explicacao": q["explicacao"] or ""
+            "explicacao": q["explicacao"] or "",
+            "comentarios_opcoes": parse_option_comments(
+                q["comentarios_opcoes"], len(opcoes)
+            )
         })
 
     response = {

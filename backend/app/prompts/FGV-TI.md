@@ -27,8 +27,11 @@ ALTERNATIVAS:
 - Não use "todas as anteriores", "nenhuma das anteriores" nem "todas as alternativas".
 - Distribua a posição da resposta correta de forma equilibrada entre A, B, C, D e E ao longo do conjunto.
 
-EXPLICAÇÃO:
-Em cada questão, escreva: (1) por que a alternativa correta está correta; (2) por que cada uma das demais está errada, em uma frase curta, identificando pela letra. Para questões de afirmativas, explique o que há de certo ou errado em cada afirmativa.
+EXPLICAÇÃO E COMENTÁRIOS:
+Em cada questão:
+1. Preencha `comentarios_opcoes` com exatamente cinco textos, na mesma ordem de `opcoes`: um comentário curto para cada alternativa, explicando por que ela está correta ou errada.
+2. Use `explicacao` para um resumo geral da resolução, em uma ou duas frases.
+Para questões de afirmativas, comente também o que há de certo ou errado em cada afirmativa.
 
 FORMATO DE RESPOSTA:
 Responda SOMENTE com JSON válido, sem texto antes ou depois e sem blocos de markdown (sem crases). Use \n para quebras de linha dentro das strings e escape aspas duplas internas.
@@ -39,7 +42,14 @@ Responda SOMENTE com JSON válido, sem texto antes ou depois e sem blocos de mar
             "enunciado": "Texto completo da questão, com cenário e/ou afirmativas numeradas quando houver.",
             "opcoes": ["Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D", "Alternativa E"],
             "resposta_correta": 0,
-            "explicacao": "Explicação da correta e das incorretas."
+            "explicacao": "Resumo geral da resolução.",
+            "comentarios_opcoes": [
+                "Comentário sobre a alternativa A.",
+                "Comentário sobre a alternativa B.",
+                "Comentário sobre a alternativa C.",
+                "Comentário sobre a alternativa D.",
+                "Comentário sobre a alternativa E."
+            ]
         }
     ]
 }
@@ -53,7 +63,14 @@ Exemplo apenas de FORMATO (não reutilize o tema; os temas devem vir do conteúd
             "enunciado": "Uma equipe de desenvolvimento de um órgão público adotou o versionamento de código para controlar as alterações feitas por vários programadores. A respeito dessa prática, analise as afirmativas a seguir.\nI. Permite recuperar versões anteriores do código.\nII. Impede que dois programadores alterem o mesmo arquivo.\nIII. O histórico de alterações ajuda a identificar quem modificou cada trecho.\nAssinale a opção correta.",
             "opcoes": ["Somente I.", "Somente III.", "Somente I e II.", "Somente I e III.", "I, II e III."],
             "resposta_correta": 3,
-            "explicacao": "A alternativa D está correta: as afirmativas I e III descrevem benefícios do versionamento. A afirmativa II está errada porque o versionamento não impede alterações simultâneas; ele permite gerenciá-las e integrá-las. A: omite a III. B: omite a I. C: inclui a II, que é falsa. E: inclui a II, que é falsa."
+            "explicacao": "As afirmativas I e III descrevem benefícios do versionamento; a afirmativa II é falsa porque o versionamento não impede alterações simultâneas.",
+            "comentarios_opcoes": [
+                "Incorreta: omite a afirmativa III, que também está correta.",
+                "Incorreta: omite a afirmativa I, que também está correta.",
+                "Incorreta: inclui a afirmativa II, que é falsa.",
+                "Correta: contempla as afirmativas I e III e exclui a II.",
+                "Incorreta: inclui a afirmativa II, que é falsa."
+            ]
         }
     ]
 }

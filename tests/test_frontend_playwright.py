@@ -127,6 +127,58 @@ class TestFrontendPage:
         assert requests[1]["part_index"] == 1
         assert requests[1]["conteudo"] == "conteudo original"
 
+    def test_result_review_shows_option_comments(self, page, server):
+        """A revisão deve mostrar as alternativas com comentários por opção"""
+        page.goto(f"{server}/")
+
+        page.evaluate("""
+            () => {
+                currentQuiz = {
+                    perguntas: [{
+                        enunciado: 'Pergunta de teste?',
+                        opcoes: ['A', 'B', 'C', 'D', 'E'],
+                        resposta_correta: 1,
+                        explicacao: 'Resumo geral da questão.',
+                        comentarios_opcoes: [
+                            'A está errada.',
+                            'B está correta.',
+                            'C está errada.',
+                            'D está errada.',
+                            'E está errada.'
+                        ]
+                    }]
+                };
+                userAnswers = {0: 0};
+                displayResult({ acertos: 0, total: 1 });
+            }
+        """)
+
+        review = page.locator("#questions-review")
+        options = review.locator(".review-option")
+
+        assert options.count() == 5
+        assert "B está correta." in options.nth(1).text_content()
+        assert "sua resposta" in options.nth(0).text_content().lower()
+        assert "correta" in options.nth(1).text_content().lower()
+        assert "Resumo geral da questão." in review.text_content()
+
+        page.evaluate("""
+            () => {
+                currentQuiz = {
+                    perguntas: [{
+                        enunciado: 'Pergunta antiga?',
+                        opcoes: ['A', 'B'],
+                        resposta_correta: 0,
+                        explicacao: 'Explicação antiga.'
+                    }]
+                };
+                userAnswers = {0: 0};
+                displayResult({ acertos: 1, total: 1 });
+            }
+        """)
+
+        assert "Explicação antiga." in page.locator("#questions-review").text_content()
+
     def test_category_radio_buttons(self, page, server):
         """Testa botões de categoria existente/nova"""
         page.goto(f"{server}/")

@@ -44,9 +44,17 @@ def init_db():
             opcoes TEXT NOT NULL,
             resposta_correta INTEGER NOT NULL,
             explicacao TEXT DEFAULT '',
+            comentarios_opcoes TEXT DEFAULT '[]',
             FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
         )
     """)
+
+    cursor.execute("PRAGMA table_info(questions)")
+    question_columns = {row["name"] for row in cursor.fetchall()}
+    if "comentarios_opcoes" not in question_columns:
+        cursor.execute(
+            "ALTER TABLE questions ADD COLUMN comentarios_opcoes TEXT DEFAULT '[]'"
+        )
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS results (

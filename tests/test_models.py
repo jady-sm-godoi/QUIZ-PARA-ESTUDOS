@@ -42,6 +42,17 @@ class TestQuizModels:
         )
         assert question.resposta_correta == 2
         assert len(question.opcoes) == 4
+        assert question.comentarios_opcoes == []
+
+    def test_question_model_with_option_comments(self):
+        question = QuestionModel(
+            enunciado="Qual é a capital do Brasil?",
+            opcoes=["São Paulo", "Rio de Janeiro", "Brasília", "Belo Horizonte"],
+            resposta_correta=2,
+            explicacao="Brasília é a capital.",
+            comentarios_opcoes=["Errada.", "Errada.", "Correta.", "Errada."]
+        )
+        assert question.comentarios_opcoes[2] == "Correta."
 
     def test_question_model_invalid_resposta_correta(self):
         with pytest.raises(ValidationError):

@@ -131,6 +131,7 @@ Os prompts enviados ao modelo ficam em `backend/app/prompts/`. O arquivo `FGV-TI
 
 - Mantenha o placeholder `{num_questions}` onde a quantidade de perguntas deve aparecer.
 - Mantenha o `\n` como texto (barra invertida + n) dentro do exemplo de JSON.
+- Inclua `comentarios_opcoes` no JSON, com uma justificativa curta para cada alternativa, na mesma ordem de `opcoes`. Quizzes antigos sem esse campo continuam usando `explicacao` como fallback.
 - Se um dia embaralhar alternativas no código, não embaralhe questões com afirmativas numeradas (I, II, III), pois a ordem delas é lógica.
 - Para adicionar outra banca/estilo, crie outro `.md` na mesma pasta (ex.: `fgv.md`, `cespe.md`, `fcc.md`). O nome do arquivo é o valor enviado no campo `prompt_name`.
 - O prompt padrão é definido por `DEFAULT_PROMPT` em `backend/app/prompts/__init__.py`.
@@ -319,6 +320,7 @@ quiz-para-estudos/
 - [x] Feedback imediato ao carregar arquivo
 - [x] Resposta correta/errada com cores (verde/vermelho)
 - [x] Explicação da resposta correta
+- [x] Revisão comentada com alternativas e justificativa por opção
 - [x] Resultado final com score
 - [x] Histórico de quizzes
 

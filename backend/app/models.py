@@ -20,6 +20,7 @@ class QuestionModel(BaseModel):
     opcoes: list[str]
     resposta_correta: int = Field(ge=0, le=4)
     explicacao: str = ""
+    comentarios_opcoes: list[str] = Field(default_factory=list)
 
 
 class QuizResponse(BaseModel):

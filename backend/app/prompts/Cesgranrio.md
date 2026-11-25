@@ -13,7 +13,7 @@ Sua tarefa é criar questões de múltipla escolha no estilo da banca Cesgranrio
 5. Ignore elementos que não sejam conteúdo técnico: capas, sumários, rodapés, avisos de direitos autorais, dados pessoais, links e propagandas.
 6. Nunca escreva "segundo o texto", "de acordo com o material", "conforme o PDF" ou expressões semelhantes. A questão deve se sustentar sozinha, como em uma prova real.
 7. Não revele a resposta no enunciado nem em outras questões.
-8. Se o material apresentar questões de outras bancas (FGV, FCC, Cebraspe etc.), não as copie. Aproveite os conhecimentos cobrados e elabore novas questões no estilo Cesgranrio.
+8. IMPORTANTE! Se o material apresentar questões, não as copie. Ignore totalmente essas questões.
 9. Explore diferentes conceitos ao longo do conjunto. Evite cobrar repetidamente o mesmo conteúdo.
 10. Não extrapole o conteúdo disponível para criar questões que dependam de conhecimentos externos, mesmo que sejam conhecimentos comuns da área de Enfermagem.
 11. Em conteúdos normativos, respeite rigorosamente a redação, os conceitos, os limites e as atribuições apresentados no material. Não confunda normas regulamentadoras, legislação trabalhista, legislação previdenciária e protocolos assistenciais.
@@ -62,17 +62,19 @@ Varie os formatos ao longo do conjunto, aproximadamente nesta proporção:
 - Distribua a posição da resposta correta de forma equilibrada entre A, B, C, D e E ao longo do conjunto.
 - Verifique cuidadosamente se existe apenas UMA alternativa correta.
 
-## 5. EXPLICAÇÃO E GABARITO COMENTADO
+## 5. COMENTÁRIOS DAS ALTERNATIVAS
 
-Para cada questão, apresente:
+Para cada questão:
 
-1. Por que a alternativa correta está correta, utilizando a fundamentação técnica presente no material.
-2. Por que cada uma das quatro alternativas incorretas está errada, em frases curtas e objetivas.
-3. Quando houver situação-problema, explique a relação entre o conhecimento técnico e a situação apresentada.
-4. Quando houver questões normativas, identifique o conceito ou dispositivo pertinente, desde que essa informação esteja presente no conteúdo fornecido.
-5. Quando houver análise de afirmativas, explique individualmente por que cada afirmação está correta ou incorreta.
+1. Preencha `comentarios_opcoes` com exatamente cinco textos, na mesma ordem de `opcoes`, explicando por que cada alternativa está correta ou errada.
+2. A justificativa da alternativa correta deve usar a fundamentação técnica presente no material.
+3. A justificativa das alternativas incorretas deve ser curta e objetiva.
+4. Quando houver situação-problema, relacione o conhecimento técnico com a situação apresentada.
+5. Quando houver questões normativas, identifique o conceito ou dispositivo pertinente, desde que essa informação esteja presente no conteúdo fornecido.
+6. Quando houver análise de afirmativas, explique individualmente por que cada afirmação está correta ou incorreta.
+7. Use `explicacao` para um resumo geral da resolução, em uma ou duas frases.
 
-A explicação deve ter finalidade didática: o candidato precisa compreender o raciocínio necessário para resolver a questão, e não apenas memorizar a letra do gabarito.
+Os comentários devem ter finalidade didática: o candidato precisa compreender o raciocínio necessário para resolver a questão, e não apenas memorizar a letra do gabarito.
 
 ## 6. FORMATO DE RESPOSTA
 
@@ -93,7 +95,14 @@ Utilize exatamente esta estrutura:
                 "Texto da alternativa E"
             ],
             "resposta_correta": 0,
-            "explicacao": "Alternativa A: ... Alternativa B: ... Alternativa C: ... Alternativa D: ... Alternativa E: ..."
+            "explicacao": "Resumo geral da resolução.",
+            "comentarios_opcoes": [
+                "Comentário sobre a alternativa A.",
+                "Comentário sobre a alternativa B.",
+                "Comentário sobre a alternativa C.",
+                "Comentário sobre a alternativa D.",
+                "Comentário sobre a alternativa E."
+            ]
         }
     ]
 }
@@ -117,7 +126,7 @@ Antes de entregar o JSON, verifique internamente:
 - Todas as respostas estão fundamentadas no conteúdo fornecido?
 - As questões apresentam variedade de formatos e conceitos?
 - Os distratores são plausíveis, mas inequivocamente incorretos?
-- As explicações justificam tanto a alternativa correta quanto todas as incorretas?
+- Os comentários em `comentarios_opcoes` justificam tanto a alternativa correta quanto todas as incorretas?
 - O JSON está sintaticamente válido?
 
 Se alguma condição não for atendida, corrija antes de retornar a resposta.
@@ -139,7 +148,14 @@ Não reutilize o tema ou o conteúdo do exemplo. Os temas devem vir exclusivamen
                 "Limitar a atuação preventiva ao registro de doenças já diagnosticadas."
             ],
             "resposta_correta": 1,
-            "explicacao": "Alternativa A: incorreta, pois restringe a atuação ao período posterior ao acidente. Alternativa B: correta, pois representa uma abordagem preventiva baseada na identificação e no controle dos riscos ocupacionais. Alternativa C: incorreta, pois a prevenção não deve depender da presença de sintomas. Alternativa D: incorreta, pois o acompanhamento individual não substitui medidas coletivas de proteção. Alternativa E: incorreta, pois a atuação preventiva não se limita ao registro de doenças."
+            "explicacao": "A atuação preventiva deve priorizar a identificação dos riscos e a adoção de medidas de controle.",
+            "comentarios_opcoes": [
+                "Incorreta: restringe a atuação ao período posterior ao acidente.",
+                "Correta: prioriza a identificação dos riscos e a implementação de medidas preventivas.",
+                "Incorreta: a prevenção não deve depender da presença de sintomas.",
+                "Incorreta: o acompanhamento individual não substitui medidas coletivas de proteção.",
+                "Incorreta: a atuação preventiva não se limita ao registro de doenças."
+            ]
         }
     ]
 }

@@ -161,3 +161,28 @@ async def test_get_quiz_with_results(temp_db):
     assert response.status_code == 200
     data = response.json()
     assert "resultado" in data or "resultado_id" in data
+
+
+@pytest.mark.asyncio
+async def test_get_quiz_returns_option_comments(temp_db, db_with_quiz):
+    """Comentários por alternativa devem ser devolvidos pela API."""
+    comments = ["SP errada", "RJ errada", "Brasília correta", "BH errada"]
+
+    conn = get_connection()
+    conn.execute(
+        "UPDATE questions SET comentarios_opcoes = ? WHERE quiz_id = ? AND enunciado = ?",
+        (json.dumps(comments), db_with_quiz, "Qual é a capital?")
+    )
+    conn.commit()
+    conn.close()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get(f"/api/quiz/{db_with_quiz}")
+
+    assert response.status_code == 200
+    question = next(
+        q for q in response.json()["perguntas"]
+        if q["enunciado"] == "Qual é a capital?"
+    )
+    assert question["comentarios_opcoes"] == comments

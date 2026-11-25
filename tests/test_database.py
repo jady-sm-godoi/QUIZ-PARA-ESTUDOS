@@ -58,3 +58,38 @@ class TestDatabase:
         assert hash1 == hash2
         assert hash1 != hash3
         assert len(hash1) == 32
+
+    def test_init_db_migrates_option_comments_column(self):
+        from app.database import set_test_db, init_db, get_connection
+
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+            db_path = f.name
+
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.execute("""
+                CREATE TABLE questions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    quiz_id TEXT NOT NULL,
+                    enunciado TEXT NOT NULL,
+                    opcoes TEXT NOT NULL,
+                    resposta_correta INTEGER NOT NULL,
+                    explicacao TEXT DEFAULT ''
+                )
+            """)
+            conn.commit()
+            conn.close()
+
+            set_test_db(db_path)
+            init_db()
+
+            conn = get_connection()
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(questions)")
+            columns = {row["name"] for row in cursor.fetchall()}
+            conn.close()
+
+            assert "comentarios_opcoes" in columns
+        finally:
+            set_test_db(None)
+            os.unlink(db_path)
